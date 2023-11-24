@@ -1,7 +1,11 @@
 #if !defined(AGL_HPP)
 #define AGL_HPP
 
+#include <functional>
+
 #include "re.hpp"
+
+using namespace std;
 
 enum aiTextureType : int;
 struct aiMaterial;
@@ -19,13 +23,10 @@ struct agl_details
 
 struct agl {
     static void agl_init(agl_details* details);
-
+	static void complete_init();
 #ifdef GRAPHICS_VULKAN
     inline static bool validationLayersEnabled = true;
 #endif
-
-
-private:
 
 	// Vulkan variables
 
@@ -66,17 +67,18 @@ private:
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
 
-	static VkInstance instance;
-    static VkDebugUtilsMessengerEXT DebugMessenger;
-    static VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    static VkDevice device;
-    static VkQueue graphicsQueue;
-    static VkSurfaceKHR surface;
-    static VkQueue presentQueue;
-	static vector<VkSemaphore> imageAvailableSemaphores;
-	static vector<VkSemaphore> renderFinishedSemaphores;
-	static vector<VkFence> inFlightFences;
-	static u32 currentFrame = 0;
+	inline static VkInstance instance = VK_NULL_HANDLE;
+    inline static VkDebugUtilsMessengerEXT DebugMessenger = VK_NULL_HANDLE;
+    inline static VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    inline static VkDevice device= VK_NULL_HANDLE;
+    inline static VkQueue graphicsQueue= VK_NULL_HANDLE;
+    inline static VkSurfaceKHR surface= VK_NULL_HANDLE;
+    inline static VkQueue presentQueue= VK_NULL_HANDLE;
+	inline static vector<VkSemaphore> imageAvailableSemaphores;
+	inline static vector<VkSemaphore> renderFinishedSemaphores;
+	inline static vector<VkFence> inFlightFences;
+	inline static u32 currentFrame = 0;
+	inline static u32 currentImage;
 
 
 	static VkDevice GetDevice()
@@ -91,12 +93,13 @@ private:
 
 	struct SurfaceDetails
 	{
+
 		aglCommandBuffer* commandBuffer;
 		aglFramebuffer* framebuffer;
 		u32 GetNextImageIndex();
 	};
 
-	static SurfaceDetails baseSurface;
+	inline static SurfaceDetails* baseSurface = nullptr;
 
 	static void CreateInstance();
 	static void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
@@ -109,7 +112,7 @@ private:
 	static void PresentFrame(u32 imageIndex);
 	static void CreateSyncObjects();
 	static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
-	static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice physicalDevice);
+	static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	static void SetupDebugMessenger();
 	static void PickPhysicalDevice();
 	static bool IsDeviceSuitable(const VkPhysicalDevice device);
@@ -121,6 +124,16 @@ private:
 	static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 	static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+
+	static void record_command_buffer(u32 imageIndex);
+	static void FinishRecordingCommandBuffer(u32 imageIndex);
+	static void DrawFrame();
+
+	template<typename T>
+	static inline void DestroyVulkanObject(function<void(VkDevice, T, const VkAllocationCallbacks*)> func, T object)
+	{
+		func(device, object, nullptr);
+	}
 
 	enum aglShaderType
 	{
@@ -141,7 +154,7 @@ private:
 
 		void Destroy();
 
-	private:
+	
 		friend aglShader;
 		aglShader* parent;
 	};
@@ -197,7 +210,7 @@ private:
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands(VkCommandBuffer vkCommandBuffer);
 
-	private:
+	
 
 		void CreateCommandPool();
 		void CreateCommandBuffers();
@@ -213,7 +226,7 @@ private:
 
 		void Begin(u32 imageIndex);
 
-	private:
+	
 
 		friend aglFramebuffer;
 
@@ -256,7 +269,7 @@ private:
 
 		bool Resized = false;
 
-	private:
+	
 
 		void CreateSwapChain();
 		void CreateImageViews();
@@ -269,8 +282,6 @@ private:
 
 	struct aglShader
 	{
-	private:
-
 		aglShaderLevel* vertModule;
 		aglShaderLevel* fragModule;
 
@@ -335,6 +346,114 @@ private:
 		void AttachTexture(aglTexture* texture, u32 binding = -1);
 	};
 
+	struct aglUniformBufferSettings
+	{
+		VkShaderStageFlags flags;
+	};
+
+	template <typename T>
+	struct aglUniformBuffer
+	{
+		aglUniformBuffer(aglShader* shader, aglUniformBufferSettings settings)
+		{
+			this->shader = shader;
+			this->settings = settings;
+
+			// UB creation
+
+			VkDeviceSize bufferSize = sizeof(T);
+
+			uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+			ubMemory.resize(MAX_FRAMES_IN_FLIGHT);
+			mappedUbs.resize(MAX_FRAMES_IN_FLIGHT);
+
+			for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+			{
+				CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], ubMemory[i]);
+
+				vkMapMemory(GetDevice(), ubMemory[i], 0, bufferSize, 0, &mappedUbs[i]);
+			}
+		}
+
+		void Destroy()
+		{
+			for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+				vkDestroyBuffer(GetDevice(), uniformBuffers[i], nullptr);
+				vkFreeMemory(GetDevice(), ubMemory[i], nullptr);
+			}
+		}
+
+		void Update(T data)
+		{
+			memcpy(mappedUbs[currentFrame], &data, sizeof(data));
+		}
+
+		void CreateBinding(VkDescriptorSetLayoutBinding bind)
+		{
+			binding = bind;
+			shader->AttachDescriptorSetLayout(binding);
+		}
+
+		void CreatePoolSize(VkDescriptorPoolSize poolSz)
+		{
+			poolSize = poolSz;
+			shader->AttachDescriptorPool(poolSize);
+		}
+
+		VkBuffer GetUniformBuffer(int frame) { return uniformBuffers[frame]; }
+
+		void AttachToShader(aglShader* shader)
+		{
+			VkDescriptorSetLayoutBinding uboLayoutBinding{};
+			uboLayoutBinding.binding = shader->poolSizes.size();
+			uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			uboLayoutBinding.descriptorCount = 1;
+			uboLayoutBinding.stageFlags = settings.flags;
+			uboLayoutBinding.pImmutableSamplers = nullptr;
+
+			VkDescriptorPoolSize uboPoolSize{};
+
+			uboPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			uboPoolSize.descriptorCount = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
+
+			shader->AttachDescriptorPool(uboPoolSize);
+
+			CreateBinding(uboLayoutBinding);
+
+			for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+			{
+
+				VkDescriptorBufferInfo* bufferInfo = new VkDescriptorBufferInfo;
+				bufferInfo->buffer = GetUniformBuffer(i);
+				bufferInfo->offset = 0;
+				bufferInfo->range = sizeof(T);
+
+				VkWriteDescriptorSet* descriptorWrite;
+
+
+				descriptorWrite = shader->CreateDescriptorSetWrite(i);
+				descriptorWrite->descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				descriptorWrite->pBufferInfo = bufferInfo;
+
+				shader->AttachDescriptorWrite(descriptorWrite, i);
+			}
+		}
+
+		VkDescriptorSetLayout setLayout;
+		vector<VkBuffer> uniformBuffers;
+		vector<VkDeviceMemory> ubMemory;
+		vector<void*> mappedUbs;
+
+		aglShader* shader;
+		VkDescriptorSetLayoutBinding binding;
+		VkDescriptorPoolSize poolSize;
+
+		aglUniformBufferSettings settings;
+
+
+	};
+
+	
 #endif
 
 	// OpenGL variables
@@ -361,8 +480,8 @@ private:
 
 	// Combined variables
 
-	static GLFWwindow* window;
-	static agl_details* details;
+	inline static GLFWwindow* window = nullptr;
+	inline static agl_details* details = nullptr;
 
 	struct aglVertex
 	{
@@ -440,7 +559,7 @@ private:
 
 		string path;
 
-	private:
+	
 
 		friend aglShader;
 
@@ -473,13 +592,13 @@ private:
 
 		u32 materialIndex;
 
-		aglMesh(void* mesh);
+		aglMesh(aiMesh* mesh);
 
 #ifdef GRAPHICS_VULKAN
 		void Draw(aglCommandBuffer* commandBuffer, u32 imageIndex);
 #endif
 
-	private:
+	
 
 		vector<aglTexture> textures;
 
@@ -501,10 +620,13 @@ private:
 
 		void SetShader(aglShader* shader);
 
-	private:
+	
 
 		vector<aglTextureRef> LoadMaterialTextures(aiMaterial* material, aiTextureType type, string path);
 	};
+
+	static void UpdateFrame();
+	static void Destroy();
 
 };
 

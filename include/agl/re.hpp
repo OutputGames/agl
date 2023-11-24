@@ -16,6 +16,10 @@
 #include <utility>
 #include <filesystem>
 
+#ifdef GRAPHICS_OPENGL
+#include <GL/glew.h>
+#endif
+
 #define NOMINMAX
 
 #ifdef GRAPHICS_VULKAN
@@ -27,6 +31,8 @@
 #define vkDestroy(F,T) DestroyVulkanObject<decltype(T)>(F, T)
 
 #endif
+
+
 
 #include <iostream>
 #include <stdexcept>
@@ -40,7 +46,6 @@
 #include <array>
 
 using namespace glm;
-using namespace std;
 
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32

@@ -1,8 +1,6 @@
 #ifndef UNIFORM_HPP
 #define UNIFORM_HPP
 
-#include "application.hpp"
-
 struct UniformBufferSettings
 {
 	VkShaderStageFlags flags;
@@ -11,7 +9,7 @@ struct UniformBufferSettings
 template <typename T>
 struct UniformBuffer
 {
-	static UniformBuffer* CreateNewBuffer(Application* application, Shader* shader, UniformBufferSettings settings);
+	static UniformBuffer* CreateNewBuffer(Shader* shader, UniformBufferSettings settings);
 
 	void Destroy();
 
@@ -37,7 +35,7 @@ private:
 
 	UniformBufferSettings settings;
 
-	Application* application;
+
 };
 
 template <typename T>

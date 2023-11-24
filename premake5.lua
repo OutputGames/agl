@@ -33,11 +33,11 @@ project "CantDoVulkan"
    targetdir "bin/%{cfg.buildcfg}"
 
    files { "src/**", "include/**", "resources/shaders/**", ".editorconfig" }
-   includedirs { "vendor/glfw/include/", "vendor/glm/", "include/","C:/VulkanSDK/1.3.250.0/Include", "vendor/assimp/include/", "vendor/" }
+   includedirs { "vendor/glfw/include/", "vendor/glm/", "include/", "vendor/assimp/include/", "vendor/" }
 
-    libdirs {"vendor/glfw/lib-vc2022/", "C:/VulkanSDK/1.3.250.0/Lib","vendor/assimp/lib/Release/"}
+    libdirs {"vendor/glfw/lib-vc2022/","vendor/assimp/lib/Release/"}
 
-    links {"glfw3.lib", "vulkan-1.lib", "assimp-vc143-mt.lib"}
+    links {"glfw3.lib", "assimp-vc143-mt.lib"}
 
    filter "configurations:Debug"
       defines { "DEBUG" }
@@ -51,8 +51,15 @@ project "CantDoVulkan"
 
    filter {"options:gfxapi=vulkan"}
       defines {"GRAPHICS_VULKAN"}
+      links {"vulkan-1.lib"}
+      libdirs {"C:/VulkanSDK/1.3.250.0/Lib"}
+      includedirs {"C:/VulkanSDK/1.3.250.0/Include"}
+      removefiles {"include/GL/**"}
 
    filter {"options:gfxapi=opengl"}
       defines {"GRAPHICS_OPENGL"}
+      libdirs {"lib/glew"}
+      links {"glew32.lib", "opengl32.lib"}
+      removefiles {"include/spirv_reflect/**"}
    
    

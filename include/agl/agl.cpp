@@ -3,8 +3,19 @@
 #include "re.hpp"
 #include "fs.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>           // Output data structure
+#include <assimp/postprocess.h>     // Post processing flags
+
 
 #if defined(GRAPHICS_VULKAN)
+
+	
+
+
   bool agl::CheckValidationLayerSupport()
 {
 	uint32_t layerCt;
@@ -98,11 +109,11 @@ u32 agl::SurfaceDetails::GetNextImageIndex()
 	vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
 	u32 imageIndex;
-	VkResult resultkhr = vkAcquireNextImageKHR(device, baseSurface.framebuffer->swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE,
+	VkResult resultkhr = vkAcquireNextImageKHR(device, baseSurface->framebuffer->swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE,
 		&imageIndex);
 
 	if (resultkhr == VK_ERROR_OUT_OF_DATE_KHR) {
-		baseSurface.framebuffer->Recreate();
+		baseSurface->framebuffer->Recreate();
 		return 0;
 	}
 	else if (resultkhr != VK_SUCCESS && resultkhr != VK_SUBOPTIMAL_KHR) {
@@ -111,6 +122,8 @@ u32 agl::SurfaceDetails::GetNextImageIndex()
 
 
 	vkResetFences(device, 1, &inFlightFences[currentFrame]);
+
+	currentImage = imageIndex;
 
 	return imageIndex;
 }
@@ -183,10 +196,10 @@ void agl::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryProp
 	VkMemoryAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties, physicalDevice);
+	allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
 
 	if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
-		throw std::runtime_error("failed to allocate vertex buffer memory!");
+		throw std::runtime_error("failed to allocate buffer memory!");
 	}
 
 	vkBindBufferMemory(device, buffer, bufferMemory, 0);
@@ -194,18 +207,18 @@ void agl::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryProp
 
 void agl::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
-	VkCommandBuffer commandBuffer = baseSurface.commandBuffer->BeginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = baseSurface->commandBuffer->BeginSingleTimeCommands();
 
 	VkBufferCopy copyRegion{};
 	copyRegion.size = size;
 	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-	baseSurface.commandBuffer->EndSingleTimeCommands(commandBuffer);
+	baseSurface->commandBuffer->EndSingleTimeCommands(commandBuffer);
 }
 
 void agl::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
-	VkCommandBuffer vkCommandBuffer = baseSurface.commandBuffer->BeginSingleTimeCommands();
+	VkCommandBuffer vkCommandBuffer = baseSurface->commandBuffer->BeginSingleTimeCommands();
 
 	VkImageMemoryBarrier barrier{};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -256,17 +269,34 @@ void agl::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout ol
 	}
 
 	vkCmdPipelineBarrier(vkCommandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+	baseSurface->commandBuffer->EndSingleTimeCommands(vkCommandBuffer);
 }
 
 void agl::CopyBufferToImage(VkBuffer buffer, VkImage image, u32 width, u32 height)
 {
-	VkCommandBuffer vkCommandBuffer = baseSurface.commandBuffer->BeginSingleTimeCommands();
+	VkCommandBuffer vkCommandBuffer = baseSurface->commandBuffer->BeginSingleTimeCommands();
 
-	VkBufferImageCopy region{ 0,0,0,{VK_IMAGE_ASPECT_COLOR_BIT,0,0,1},{0,0,0},{width,height,1} };
+	VkBufferImageCopy region{};
+	region.bufferOffset = 0;
+	region.bufferRowLength = 0;
+	region.bufferImageHeight = 0;
+
+	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.baseArrayLayer = 0;
+	region.imageSubresource.layerCount = 1;
+
+	region.imageOffset = { 0, 0, 0 };
+	region.imageExtent = {
+		width,
+		height,
+		1
+	};
 
 	vkCmdCopyBufferToImage(vkCommandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-	baseSurface.commandBuffer->EndSingleTimeCommands(vkCommandBuffer);
+	baseSurface->commandBuffer->EndSingleTimeCommands(vkCommandBuffer);
 }
 
 VkFormat agl::FindSupportedFormat(const vector<VkFormat>& candidates, VkImageTiling tiling,
@@ -312,7 +342,7 @@ void agl::PresentFrame(u32 imageIndex)
 	submitInfo.commandBufferCount = 1;
 
 
-	submitInfo.pCommandBuffers = &baseSurface.commandBuffer->commandBuffers[currentFrame];
+	submitInfo.pCommandBuffers = &baseSurface->commandBuffer->commandBuffers[currentFrame];
 
 	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
 	submitInfo.signalSemaphoreCount = 1;
@@ -331,7 +361,7 @@ void agl::PresentFrame(u32 imageIndex)
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.pWaitSemaphores = signalSemaphores;
 
-	VkSwapchainKHR swapChains[] = { baseSurface.framebuffer->swapChain };
+	VkSwapchainKHR swapChains[] = { baseSurface->framebuffer->swapChain };
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = swapChains;
 	presentInfo.pImageIndices = &imageIndex;
@@ -339,9 +369,9 @@ void agl::PresentFrame(u32 imageIndex)
 
 	VkResult result = vkQueuePresentKHR(presentQueue, &presentInfo);
 
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || baseSurface.framebuffer->IsResized()) {
-		baseSurface.framebuffer->Resized = false;
-		baseSurface.framebuffer->Recreate();
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || baseSurface->framebuffer->IsResized()) {
+		baseSurface->framebuffer->Resized = false;
+		baseSurface->framebuffer->Recreate();
 
 		cout << "Recreated Swapchain" << endl;
 
@@ -349,6 +379,8 @@ void agl::PresentFrame(u32 imageIndex)
 	else if (result != VK_SUCCESS) {
 		throw std::runtime_error("failed to present swap chain image!");
 	}
+
+	vkDeviceWaitIdle(device);
 }
 
 void agl::CreateSyncObjects()
@@ -377,10 +409,10 @@ void agl::CreateSyncObjects()
 
 void agl::FramebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
-	baseSurface.framebuffer->Resized = true;
+	baseSurface->framebuffer->Resized = true;
 }
 
-uint32_t agl::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice physicalDevice)
+uint32_t agl::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
 	VkPhysicalDeviceMemoryProperties memProperties;
 	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
@@ -670,6 +702,28 @@ VkExtent2D agl::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
 	return actualExtent;
 }
 
+void agl::record_command_buffer(u32 imageIndex)
+{
+	baseSurface->commandBuffer->Begin(imageIndex);
+
+	baseSurface->framebuffer->Bind(imageIndex);
+}
+
+void agl::FinishRecordingCommandBuffer(u32 imageIndex)
+{
+	baseSurface->commandBuffer->End(imageIndex);
+}
+
+void agl::DrawFrame()
+{
+	u32 imageIndex = baseSurface->GetNextImageIndex();
+
+	PresentFrame(imageIndex);
+
+	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+
 agl::aglShaderLevel::aglShaderLevel(string code, aglShaderType type, aglShader* parent)
 {
 	this->parent = parent;
@@ -726,7 +780,7 @@ agl::aglShaderLevel::aglShaderLevel(string code, aglShaderType type, aglShader* 
 
 			parent->ports.push_back(port);
 
-			cout << "Descriptor binding found: " << binding->name << " found at " << binding->binding << endl;
+			//cout << "Descriptor binding found: " << binding->name << " found at " << binding->binding << endl;
 		}
 
 
@@ -867,7 +921,7 @@ void agl::aglRenderPass::Begin(u32 imageIndex)
 
 	array<VkClearValue, 2> clearValues{};
 
-	clearValues[0].color = { 0.0f,0.0f,0.0f,1.0f };
+	clearValues[0].color = { 0.2f,0.3f,0.3f,1.0f };
 	clearValues[1].depthStencil = { 1.0f,0 };
 
 	renderPassInfo.clearValueCount = cast(clearValues.size(), u32);
@@ -1271,7 +1325,7 @@ void agl::aglShader::CreateGraphicsPipeline()
 	pipelineInfo.pColorBlendState = &colorBlending;
 	pipelineInfo.pDynamicState = &dynamicState;
 	pipelineInfo.layout = pipelineLayout;
-	pipelineInfo.renderPass = baseSurface.framebuffer->GetRenderPass()->renderPass;
+	pipelineInfo.renderPass = baseSurface->framebuffer->GetRenderPass()->renderPass;
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 	pipelineInfo.basePipelineIndex = -1;
@@ -1324,13 +1378,10 @@ void agl::aglShader::CreateDescriptorSet()
 				for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 				{
 
-					VkImageView* iv = new VkImageView(texture->textureImageView);
-					VkSampler* sampler = new VkSampler(texture->textureSampler);
-
 					VkDescriptorImageInfo* imageInfo = new VkDescriptorImageInfo;
 					imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-					imageInfo->imageView = *iv;
-					imageInfo->sampler = *sampler;
+					imageInfo->imageView = texture->textureImageView;
+					imageInfo->sampler = texture->textureSampler;
 
 					VkWriteDescriptorSet* descriptorWrite;
 
@@ -1402,6 +1453,326 @@ void agl::aglShader::AttachTexture(aglTexture* texture, u32 binding)
 		port->texture = texture;
 	}
 }
+
+agl::aglTexture::aglTexture(string path)
+{
+	this->path = path;
+	int texWidth, texHeight, texChannels;
+
+	stbi_set_flip_vertically_on_load(true);
+
+	stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+	if (!pixels) {
+		throw std::runtime_error("failed to load texture image!");
+	}
+
+	width = texWidth;
+	height = texHeight;
+	channels = texChannels;
+
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+
+	CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+	void* data;
+	vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
+	memcpy(data, pixels, static_cast<size_t>(imageSize));
+	vkUnmapMemory(device, stagingBufferMemory);
+
+	stbi_image_free(pixels);
+
+	CreateVulkanImage(width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, device, physicalDevice);
+
+	TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	CopyBufferToImage(stagingBuffer, textureImage, static_cast<u32>(texWidth), static_cast<u32>(texHeight));
+	TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	vkDestroy(vkDestroyBuffer, stagingBuffer);
+	vkDestroy(vkFreeMemory, stagingBufferMemory);
+
+	textureImageView = CreateImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, device);
+	CreateTextureSampler();
+}
+
+VkImageView agl::aglTexture::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
+	VkDevice device)
+{
+	VkImageViewCreateInfo viewInfo{};
+	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	viewInfo.image = image;
+	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	viewInfo.format = format;
+	viewInfo.subresourceRange = { aspectFlags, 0,1,0,1 };
+
+	VkImageView imageView;
+	if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create texture image view");
+	}
+
+	return imageView;
+}
+
+void agl::aglTexture::CreateVulkanImage(u32 width, u32 height, VkFormat format, VkImageTiling tiling,
+	VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory,
+	VkDevice device, VkPhysicalDevice physicalDevice)
+{
+	VkImageCreateInfo imageInfo{};
+	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	imageInfo.imageType = VK_IMAGE_TYPE_2D;
+	imageInfo.extent.width = width;
+	imageInfo.extent.height = height;
+	imageInfo.extent.depth = 1;
+	imageInfo.mipLevels = 1;
+	imageInfo.arrayLayers = 1;
+	imageInfo.format = format;
+	imageInfo.tiling = tiling;
+	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	imageInfo.usage = usage;
+	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create image!");
+	}
+
+	VkMemoryRequirements memRequirements;
+	vkGetImageMemoryRequirements(device, image, &memRequirements);
+
+	VkMemoryAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+
+	if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+		throw std::runtime_error("failed to allocate image memory!");
+	}
+
+	vkBindImageMemory(device, image, imageMemory, 0);
+}
+
+void agl::aglTexture::CreateTextureSampler()
+{
+	VkSamplerCreateInfo samplerInfo{};
+
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	samplerInfo.minFilter = VK_FILTER_LINEAR;
+
+	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+	samplerInfo.anisotropyEnable = VK_FALSE;
+
+	VkPhysicalDeviceProperties properties{};
+	vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+
+	samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+
+	samplerInfo.compareEnable = VK_FALSE;
+	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerInfo.mipLodBias = 0.0f;
+	samplerInfo.minLod = 0.0f;
+	samplerInfo.maxLod = 0.0f;
+
+	if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create texture sampler!");
+	}
+}
+
+agl::aglMesh::aglMesh(aiMesh* mesh)
+{
+
+	shader = nullptr;
+
+	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
+	{
+		aiVector3D v = mesh->mVertices[j];
+		aiVector3D t = mesh->mTextureCoords[0][j];
+		aiVector3D n = mesh->mNormals[j];
+
+		aglVertex vtx = { {v.x, v.y,v.z}, {n.x,n.y,n.z}, {t.x, t.y} };
+
+		vertices.push_back(vtx);
+	}
+	for (unsigned int j = 0; j < mesh->mNumFaces; j++)
+	{
+		aiFace face = mesh->mFaces[j];
+		for (unsigned int l = 0; l < face.mNumIndices; l++)
+			indices.push_back(face.mIndices[l]);
+	}
+
+
+	{
+
+		VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+
+		CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+		void* data;
+		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+		memcpy(data, vertices.data(), (size_t) bufferSize);
+		vkUnmapMemory(device, stagingBufferMemory);
+
+		CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+
+		CopyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+
+		vkDestroyBuffer(device, stagingBuffer, nullptr);
+		vkFreeMemory(device, stagingBufferMemory, nullptr);
+	}
+
+	{
+		VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+
+		CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+		void* data;
+		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+		memcpy(data, indices.data(), (size_t) bufferSize);
+		vkUnmapMemory(device, stagingBufferMemory);
+
+		CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+
+		CopyBuffer(stagingBuffer, indexBuffer, bufferSize);
+
+		vkDestroyBuffer(device, stagingBuffer, nullptr);
+		vkFreeMemory(device, stagingBufferMemory, nullptr);
+	}
+
+	materialIndex = mesh->mMaterialIndex;
+
+}
+
+void agl::aglMesh::Draw(aglCommandBuffer* commandBuffer, u32 imageIndex)
+{
+	if (shader) {
+		shader->BindGraphicsPipeline(commandBuffer->GetCommandBuffer(currentFrame));
+	}
+
+	VkBuffer vertexBuffers[ ] = { vertexBuffer };
+	VkDeviceSize offsets[ ] = { 0 };
+	vkCmdBindVertexBuffers(commandBuffer->GetCommandBuffer(imageIndex), 0, 1, vertexBuffers, offsets);
+
+	vkCmdBindIndexBuffer(commandBuffer->GetCommandBuffer(imageIndex), indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+	if (shader) {
+		shader->BindDescriptor(commandBuffer->GetCommandBuffer(imageIndex), imageIndex);
+	}
+
+	//vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+
+	vkCmdDrawIndexed(commandBuffer->GetCommandBuffer(imageIndex), static_cast<u32>(indices.size()), 1, 0, 0, 0);
+}
+
+agl::aglModel::aglModel(string path)
+{
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(path.c_str(), aiProcess_CalcTangentSpace |
+		aiProcess_Triangulate |
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_SortByPType);
+
+	// If the import failed, report it
+	if (scene == nullptr) {
+		cout << (importer.GetErrorString());
+		return;
+	}
+
+	for (int j = 0; j < scene->mNumTextures; ++j)
+	{
+		aiTexture* tex = scene->mTextures[j];
+		cout << tex->mFilename.C_Str() << endl;
+
+	}
+
+	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
+	{
+		aiMesh* aimesh = scene->mMeshes[i];
+
+		aglMesh* mesh = new aglMesh(aimesh);
+
+		meshes.push_back(mesh);
+	}
+
+	for (int i = 0; i < scene->mNumMaterials; ++i)
+	{
+		aiMaterial* aiMat = scene->mMaterials[i];
+
+		vector<aglTextureRef> diffuseTextures = LoadMaterialTextures(aiMat, aiTextureType_DIFFUSE, path);
+		vector<aglTextureRef> normalTextures = LoadMaterialTextures(aiMat, aiTextureType_NORMALS, path);
+
+		aglMaterial* material = new aglMaterial;
+
+		material->textures.insert({ aglMaterial::ALBEDO, diffuseTextures });
+		material->textures.insert({ aglMaterial::NORMAL, normalTextures });
+
+		materials.push_back(material);
+	}
+}
+
+void agl::aglModel::Draw(aglCommandBuffer* commandBuffer, u32 imageIndex)
+{
+	for (aglMesh* mesh : meshes)
+	{
+		mesh->Draw(commandBuffer, imageIndex);
+	}
+}
+
+void agl::aglModel::SetShader(aglShader* shader)
+{
+	for (aglMesh* mesh : meshes)
+	{
+		mesh->shader = shader;
+	}
+}
+
+vector<agl::aglTextureRef> agl::aglModel::LoadMaterialTextures(aiMaterial* material, aiTextureType type, string modelPath)
+{
+	vector<aglTextureRef> textures;
+
+	for (int i = 0; i < material->GetTextureCount(type); ++i)
+	{
+		aiString str;
+		material->GetTexture(type, i, &str);
+
+		string directory;
+		string path;
+
+		const szt last_slash_idx = modelPath.rfind('\\');
+		if (string::npos != last_slash_idx)
+		{
+			directory = modelPath.substr(0, last_slash_idx);
+		}
+
+		filesystem::path spath(str.C_Str());
+
+		string spaths{ spath.filename().u8string() };
+
+		path = directory + "//" + spaths;
+
+		aglTextureRef ref = { path };
+
+		textures.push_back(ref);
+
+	}
+
+	return textures;
+}
 #endif
 
 
@@ -1410,7 +1781,37 @@ void agl::agl_init(agl_details* details)
 
 	agl::details = details;
 
+	glfwInit();
+
+#ifdef GRAPHICS_VULKAN
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+#else
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif
+
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
+	window = glfwCreateWindow(details->Width, details->Height, details->applicationName.c_str(), nullptr, nullptr);
+	//glfwSetFramebufferSizeCallback(window, FramebufferResizeCallback);
+
+#ifdef GRAPHICS_OPENGL
+	glfwMakeContextCurrent(window);
+
+	glewExperimental = true; // Needed in core profile
+	if (glewInit() != GLEW_OK) {
+		fprintf(stderr, "Failed to initialize GLEW\n");
+		return;
+	}
+
+	glViewport(0, 0, details->Width, details->Height);
+#endif
+
+
 #if defined(GRAPHICS_VULKAN)
+
+
 
 	// Instance
 
@@ -1436,7 +1837,77 @@ void agl::agl_init(agl_details* details)
 
 	CreateSyncObjects();
 
+	baseSurface = new SurfaceDetails;
+
+	baseSurface->framebuffer = new aglFramebuffer;
+	baseSurface->framebuffer->CreateFramebuffers();
+
+	baseSurface->commandBuffer = new aglCommandBuffer;
+
+	// General resource creation
+
+
+
+
 #else
 
 #endif // 
+}
+
+void agl::complete_init()
+{
+#ifdef GRAPHICS_VULKAN
+	baseSurface->commandBuffer->CreateMainBuffers();
+
+	baseSurface->framebuffer->GetRenderPass()->AttachToCommandBuffer(baseSurface->commandBuffer);
+#endif
+}
+
+void agl::UpdateFrame()
+{
+
+#ifdef GRAPHICS_VULKAN
+	DrawFrame();
+
+#endif
+
+
+#ifdef GRAPHICS_OPENGL
+	glfwSwapBuffers(window);
+
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+#endif
+
+	glfwPollEvents();
+}
+
+void agl::Destroy()
+{
+#ifdef GRAPHICS_VULKAN
+	vkDeviceWaitIdle(device);
+
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
+		vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
+		vkDestroyFence(device, inFlightFences[i], nullptr);
+	}
+
+	if (validationLayersEnabled)
+	{
+		DestroyDebugUtilsMessengerEXT(instance, DebugMessenger, nullptr);
+	}
+
+
+	vkDestroySurfaceKHR(instance, surface, nullptr);
+	vkDestroyDevice(device, nullptr);
+	vkDestroyInstance(instance, nullptr);
+
+#endif
+
+	glfwDestroyWindow(window);
+
+	glfwTerminate();
 }
