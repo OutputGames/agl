@@ -43,6 +43,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <array>
 
 using namespace glm;
@@ -55,6 +56,8 @@ using namespace glm;
 #define flt (float)
 
 #define cast(O,T) static_cast<T>(O)
+
+#define loop(c, cl, vn) alignas(sizeof(cl)) cl vn##c;
 
 
 typedef uint32_t u32;

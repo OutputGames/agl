@@ -1,2 +1,3 @@
 
-premake5 vs2022 --gfxapi=vulkan
+
+premake5 vs2022 --gfxapi=%1

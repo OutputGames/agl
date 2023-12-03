@@ -1164,6 +1164,9 @@ void agl::aglFramebuffer::CreateDepthResources()
 
 void agl::aglShader::Setup()
 {
+	ppBuffer = new aglUniformBuffer<PostProcessingSettings>(this, { VK_SHADER_STAGE_FRAGMENT_BIT });
+
+	ppBuffer->AttachToShader(this,GetBindingByName("postProcessingSettings"));
 
 	CreateDescriptorSetLayout();
 
@@ -1184,6 +1187,11 @@ agl::aglShader::aglShader(aglShaderSettings* settings)
 
 	fragmentCode = ReadString(settings->fragmentPath);
 	fragModule = new aglShaderLevel(fragmentCode, FRAGMENT, this);
+
+	for (int i = 0; i < descriptorWrites.size(); ++i)
+	{
+		descriptorWrites[i].resize(ports.size());
+	}
 
 
 	shaderStages = { vertModule->stageInfo, fragModule->stageInfo };
@@ -1214,6 +1222,8 @@ void agl::aglShader::Destroy()
 void agl::aglShader::BindGraphicsPipeline(VkCommandBuffer commandBuffer)
 {
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+
+	ppBuffer->Update(*postProcessing);
 }
 
 void agl::aglShader::BindDescriptor(VkCommandBuffer commandBuffer, u32 currentImage)
@@ -1385,11 +1395,11 @@ void agl::aglShader::CreateDescriptorSet()
 
 					VkWriteDescriptorSet* descriptorWrite;
 
-					descriptorWrite = CreateDescriptorSetWrite(i);
+					descriptorWrite = CreateDescriptorSetWrite(i,port->binding);
 					descriptorWrite->descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 					descriptorWrite->pImageInfo = imageInfo;
 
-					AttachDescriptorWrite(descriptorWrite, i);
+					AttachDescriptorWrite(descriptorWrite, i,port->binding);
 				}
 			}
 		}
@@ -1430,7 +1440,7 @@ void agl::aglShader::AttachTexture(aglTexture* texture, u32 binding)
 {
 
 	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-	samplerLayoutBinding.binding = poolSizes.size();
+	samplerLayoutBinding.binding = binding;
 	samplerLayoutBinding.descriptorCount = 1;
 	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	samplerLayoutBinding.pImmutableSamplers = nullptr;
@@ -1679,52 +1689,6 @@ void agl::aglMesh::Draw(aglCommandBuffer* commandBuffer, u32 imageIndex)
 	vkCmdDrawIndexed(commandBuffer->GetCommandBuffer(imageIndex), static_cast<u32>(indices.size()), 1, 0, 0, 0);
 }
 
-agl::aglModel::aglModel(string path)
-{
-	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(path.c_str(), aiProcess_CalcTangentSpace |
-		aiProcess_Triangulate |
-		aiProcess_JoinIdenticalVertices |
-		aiProcess_SortByPType);
-
-	// If the import failed, report it
-	if (scene == nullptr) {
-		cout << (importer.GetErrorString());
-		return;
-	}
-
-	for (int j = 0; j < scene->mNumTextures; ++j)
-	{
-		aiTexture* tex = scene->mTextures[j];
-		cout << tex->mFilename.C_Str() << endl;
-
-	}
-
-	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
-	{
-		aiMesh* aimesh = scene->mMeshes[i];
-
-		aglMesh* mesh = new aglMesh(aimesh);
-
-		meshes.push_back(mesh);
-	}
-
-	for (int i = 0; i < scene->mNumMaterials; ++i)
-	{
-		aiMaterial* aiMat = scene->mMaterials[i];
-
-		vector<aglTextureRef> diffuseTextures = LoadMaterialTextures(aiMat, aiTextureType_DIFFUSE, path);
-		vector<aglTextureRef> normalTextures = LoadMaterialTextures(aiMat, aiTextureType_NORMALS, path);
-
-		aglMaterial* material = new aglMaterial;
-
-		material->textures.insert({ aglMaterial::ALBEDO, diffuseTextures });
-		material->textures.insert({ aglMaterial::NORMAL, normalTextures });
-
-		materials.push_back(material);
-	}
-}
-
 void agl::aglModel::Draw(aglCommandBuffer* commandBuffer, u32 imageIndex)
 {
 	for (aglMesh* mesh : meshes)
@@ -1733,46 +1697,6 @@ void agl::aglModel::Draw(aglCommandBuffer* commandBuffer, u32 imageIndex)
 	}
 }
 
-void agl::aglModel::SetShader(aglShader* shader)
-{
-	for (aglMesh* mesh : meshes)
-	{
-		mesh->shader = shader;
-	}
-}
-
-vector<agl::aglTextureRef> agl::aglModel::LoadMaterialTextures(aiMaterial* material, aiTextureType type, string modelPath)
-{
-	vector<aglTextureRef> textures;
-
-	for (int i = 0; i < material->GetTextureCount(type); ++i)
-	{
-		aiString str;
-		material->GetTexture(type, i, &str);
-
-		string directory;
-		string path;
-
-		const szt last_slash_idx = modelPath.rfind('\\');
-		if (string::npos != last_slash_idx)
-		{
-			directory = modelPath.substr(0, last_slash_idx);
-		}
-
-		filesystem::path spath(str.C_Str());
-
-		string spaths{ spath.filename().u8string() };
-
-		path = directory + "//" + spaths;
-
-		aglTextureRef ref = { path };
-
-		textures.push_back(ref);
-
-	}
-
-	return textures;
-}
 #endif
 
 
@@ -1780,6 +1704,7 @@ void agl::agl_init(agl_details* details)
 {
 
 	agl::details = details;
+	agl::postProcessing = new PostProcessingSettings;
 
 	glfwInit();
 
@@ -1789,6 +1714,10 @@ void agl::agl_init(agl_details* details)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
+
+	
+
 #endif
 
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
@@ -1806,6 +1735,17 @@ void agl::agl_init(agl_details* details)
 	}
 
 	glViewport(0, 0, details->Width, details->Height);
+
+	glEnable(GL_DEBUG_OUTPUT);
+	glDebugMessageCallback(DebugMessageCallback, 0);
+
+	//glEnable(GL_FRAMEBUFFER_SRGB);
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
+	glEnable(GL_DEPTH_TEST);
+
 #endif
 
 
@@ -1863,6 +1803,548 @@ void agl::complete_init()
 #endif
 }
 
+#if defined(GRAPHICS_OPENGL)
+
+agl::aglShader::aglShader(aglShaderSettings* settings)
+{
+	u32 vertexShader = CompileShaderStage(GL_VERTEX_SHADER, ReadString(settings->vertexPath));
+	u32 fragmentShader = CompileShaderStage(GL_FRAGMENT_SHADER, ReadString(settings->fragmentPath));
+
+	id = LinkShader({ vertexShader,fragmentShader });
+	GLint count;
+
+	GLint size; // size of the variable
+	GLenum type; // type of the variable (float, vec3 or mat4, etc)
+
+	const GLsizei bufSize = 16 * 4; // maximum name length
+	GLchar name[bufSize]; // variable name in GLSL
+	GLsizei length; // name length
+	glGetProgramiv(id, GL_ACTIVE_UNIFORMS, &count);
+	//printf("Active Uniforms: %d\n", count);
+
+	glUseProgram(id);
+
+	for (int i = 0; i < count; ++i)
+	{
+
+		glGetActiveUniform(id, (GLuint) i, bufSize, &length, &size, &type, name);
+
+		printf("Uniform #%d\n", i);
+		printf("Name: %s\n", name);
+
+		GLint unit = -1;
+		GLuint location = glGetUniformLocation(id, name);
+
+		glGetUniformiv(id, location, &unit);
+
+		if (unit != -1)
+		{
+			printf("Type: %u, Unit: %d\n", type, unit);
+
+			aglShaderBinding* binding = new aglShaderBinding;
+			binding->id = unit;
+			binding->name = name;
+			binding->type = type;
+
+			if (bindings.size() <= unit)
+			{
+				bindings.resize(unit + 1);
+			}
+
+			if (binding->type == GL_SAMPLER_2D)
+			{
+				aglShaderBinding_txt* txt = static_cast<aglShaderBinding_txt*>(binding);
+				txt->texture = nullptr;
+
+				bindings[unit] = txt;
+			} else
+			{
+				bindings[unit] = binding;
+			}
+		} else
+		{
+			printf("Uniform is not bound to point\n");
+		}
+
+		printf("\n");
+	}
+
+	GLint numBlocks;
+	glGetProgramiv(id, GL_ACTIVE_UNIFORM_BLOCKS, &numBlocks);
+
+	vector<string> nameList;
+	nameList.reserve(numBlocks);
+
+	for (int i = 0; i < numBlocks; ++i)
+	{
+		GLint nameLength;
+		glGetActiveUniformBlockiv(id, i, GL_UNIFORM_BLOCK_NAME_LENGTH, &nameLength);
+
+		GLint blockBinding;
+		glGetActiveUniformBlockiv(id, i, GL_UNIFORM_BLOCK_BINDING, &blockBinding);
+
+		vector<GLchar> name;
+		name.resize(nameLength);
+		glGetActiveUniformBlockName(id, i, nameLength, NULL, &name[0]);
+
+
+		nameList.push_back(string());
+		nameList.back().assign(name.begin(), name.end() - 1);
+
+		aglShaderBinding* binding = new aglShaderBinding;
+		binding->id = blockBinding;
+		binding->name = name.data();
+		binding->type = GL_UNIFORM_BUFFER;
+
+		if (bindings.size() <= blockBinding)
+		{
+			bindings.resize(blockBinding + 1);
+		}
+
+		bindings[blockBinding] = binding;
+	}
+
+	int ctr = 0;
+	for (aglShaderBinding* agl_shader_binding : bindings)
+	{
+		if (agl_shader_binding == nullptr) {
+			bindings[ctr] = new aglShaderBinding;
+		}
+
+		ctr++;
+	}
+
+
+	agl::aglUniformBufferSettings ubosettings;
+
+	ubosettings.binding = GetBindingByName("PostProcessingSettings.postProcessingSettings");
+	ubosettings.name = "PostProcessingSettings";
+
+	ppBuffer = new aglUniformBuffer<PostProcessingSettings>(this, ubosettings);
+
+}
+
+void agl::aglShader::Use()
+{
+	glUseProgram(id);
+
+	
+
+	for (aglShaderBinding* binding : bindings)
+	{
+		if (binding == nullptr || binding->id == -1)
+			continue;
+		if (binding->type == GL_SAMPLER_2D)
+		{
+			aglShaderBinding_txt* texture_binding = static_cast<aglShaderBinding_txt*>(binding);
+			if (texture_binding->texture == nullptr)
+				continue;
+			//glActiveTexture(GL_TEXTURE0 + texture_binding->id);
+			//glBindTexture(GL_TEXTURE_2D, texture_binding->texture->id);
+
+			glBindTextureUnit(texture_binding->id, texture_binding->texture->id);
+		}
+	}
+
+	ppBuffer->Update(*postProcessing);
+
+}
+
+void agl::aglShader::AttachTexture(aglTexture* tex, u32 binding)
+{
+
+	aglShaderBinding* shader_binding = bindings[binding];
+	if (shader_binding->type == GL_SAMPLER_2D)
+	{
+		aglShaderBinding_txt* texture_binding = static_cast<aglShaderBinding_txt*>(shader_binding);
+		texture_binding->texture = tex;
+	}
+}
+
+u32 agl::aglShader::GetBindingByName(string n)
+{
+	for (aglShaderBinding* binding : bindings)
+	{
+		if (binding == nullptr || binding->id == -1)
+			continue;
+		if (binding->name == n)
+		{
+			return binding->id;
+		}
+	}
+	return -1;
+}
+
+void agl::aglShader::setBool(const std::string& name, bool value) const
+{
+	glUniform1i(glGetUniformLocation(id, name.c_str()), static_cast<int>(value));
+}
+
+void agl::aglShader::setInt(const std::string& name, int value) const
+{
+	glUniform1i(glGetUniformLocation(id, name.c_str()), value);
+}
+
+void agl::aglShader::setFloat(const std::string& name, float value) const
+{
+	glUniform1f(glGetUniformLocation(id, name.c_str()), value);
+}
+
+void agl::aglShader::setVec2(const std::string& name, const vec2& value) const
+{
+	glUniform2fv(glGetUniformLocation(id, name.c_str()), 1, &value[0]);
+}
+
+void agl::aglShader::setVec2(const std::string& name, float x, float y) const
+{
+	glUniform2f(glGetUniformLocation(id, name.c_str()), x, y);
+}
+
+void agl::aglShader::setVec3(const std::string& name, const vec3& value) const
+{
+	glUniform3fv(glGetUniformLocation(id, name.c_str()), 1, &value[0]);
+}
+
+void agl::aglShader::setVec3(const std::string& name, float x, float y, float z) const
+{
+	glUniform3f(glGetUniformLocation(id, name.c_str()), x, y, z);
+}
+
+void agl::aglShader::setVec4(const std::string& name, const vec4& value) const
+{
+	glUniform4fv(glGetUniformLocation(id, name.c_str()), 1, &value[0]);
+}
+
+void agl::aglShader::setVec4(const std::string& name, float x, float y, float z, float w) const
+{
+	glUniform4f(glGetUniformLocation(id, name.c_str()), x, y, z, w);
+}
+
+void agl::aglShader::setMat2(const std::string& name, const mat2& mat) const
+{
+	glUniformMatrix2fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+
+void agl::aglShader::setMat3(const std::string& name, const mat3& mat) const
+{
+	glUniformMatrix3fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+
+void agl::aglShader::setMat4(const std::string& name, const mat4& mat) const
+{
+	glUniformMatrix4fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+
+u32 agl::aglShader::CompileShaderStage(GLenum stage, string code)
+{
+	u32 vertexShader = glCreateShader(stage);
+
+	const char* vertexCode = code.c_str();
+
+	glShaderBinary(1, &vertexShader, GL_SHADER_BINARY_FORMAT_SPIR_V, code.data(), code.size());
+	glSpecializeShader(vertexShader, "main", 0, 0, 0);;
+
+	GLint result;
+	char resultLog[512];
+
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &result);
+
+	if (!result)
+	{
+		glGetShaderInfoLog(vertexShader, 512, NULL, resultLog);
+		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << resultLog << std::endl;
+	}
+
+	return vertexShader;
+}
+
+u32 agl::aglShader::LinkShader(vector<u32> shaders)
+{
+	u32 shaderProgram = glCreateProgram();
+
+	for (u32 shader : shaders)
+	{
+		glAttachShader(shaderProgram, shader);
+	}
+	glLinkProgram(shaderProgram);
+
+	GLint result;
+
+	char resultLog[512];
+
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &result);
+
+	if (!result) {
+		glGetProgramInfoLog(shaderProgram, 512, NULL, resultLog);
+		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << resultLog << std::endl;
+	}
+
+	for (u32 shader : shaders)
+	{
+		glDeleteShader(shader);
+	}
+
+	return shaderProgram;
+}
+
+void agl::DebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+	const GLchar* message, const void* userParam)
+{
+	std::cout << "---------------" << std::endl;
+	std::cout << "Debug message (" << id << "): " << message << std::endl;
+
+	switch (source)
+	{
+	case GL_DEBUG_SOURCE_API:             std::cout << "Source: API"; break;
+	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   std::cout << "Source: Window System"; break;
+	case GL_DEBUG_SOURCE_SHADER_COMPILER: std::cout << "Source: Shader Compiler"; break;
+	case GL_DEBUG_SOURCE_THIRD_PARTY:     std::cout << "Source: Third Party"; break;
+	case GL_DEBUG_SOURCE_APPLICATION:     std::cout << "Source: Application"; break;
+	case GL_DEBUG_SOURCE_OTHER:           std::cout << "Source: Other"; break;
+	} std::cout << std::endl;
+
+	switch (type)
+	{
+	case GL_DEBUG_TYPE_ERROR:               std::cout << "Type: Error"; break;
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: std::cout << "Type: Deprecated Behaviour"; break;
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  std::cout << "Type: Undefined Behaviour"; break;
+	case GL_DEBUG_TYPE_PORTABILITY:         std::cout << "Type: Portability"; break;
+	case GL_DEBUG_TYPE_PERFORMANCE:         std::cout << "Type: Performance"; break;
+	case GL_DEBUG_TYPE_MARKER:              std::cout << "Type: Marker"; break;
+	case GL_DEBUG_TYPE_PUSH_GROUP:          std::cout << "Type: Push Group"; break;
+	case GL_DEBUG_TYPE_POP_GROUP:           std::cout << "Type: Pop Group"; break;
+	case GL_DEBUG_TYPE_OTHER:               std::cout << "Type: Other"; break;
+	} std::cout << std::endl;
+
+	switch (severity)
+	{
+	case GL_DEBUG_SEVERITY_HIGH:         std::cout << "Severity: high"; break;
+	case GL_DEBUG_SEVERITY_MEDIUM:       std::cout << "Severity: medium"; break;
+	case GL_DEBUG_SEVERITY_LOW:          std::cout << "Severity: low"; break;
+	case GL_DEBUG_SEVERITY_NOTIFICATION: std::cout << "Severity: notification"; break;
+	} std::cout << std::endl;
+	std::cout << std::endl;
+}
+
+agl::aglTexture::aglTexture(string path)
+{
+	this->path = path;
+	int texWidth, texHeight, texChannels;
+
+	stbi_set_flip_vertically_on_load(true);
+
+	stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	u32 imageSize = texWidth * texHeight * 4;
+
+	if (!pixels) {
+		throw std::runtime_error("failed to load texture image!");
+	}
+
+	width = texWidth;
+	height = texHeight;
+	channels = texChannels;
+
+	GLenum format;
+
+	switch (channels)
+	{
+	case 1:
+		format = GL_R;
+		break;
+	case 2:
+		format = GL_RG;
+		break;
+	case 3:
+		format = GL_RGB;
+		break;
+	case 4:
+		format = GL_RGBA;
+		break;
+	default:
+		break;
+	}
+
+	glGenTextures(1, &id);
+	glBindTexture(GL_TEXTURE_2D, id);
+	// set the texture wrapping/filtering options (on the currently bound texture object)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, pixels);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	stbi_image_free(pixels);
+}
+
+agl::aglMesh::aglMesh(aiMesh* mesh)
+{
+	shader = nullptr;
+
+	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
+	{
+		aiVector3D v = mesh->mVertices[j];
+		aiVector3D t = mesh->mTextureCoords[0][j];
+		aiVector3D n = mesh->mNormals[j];
+
+		aglVertex vtx = { {v.x, v.y,v.z}, {n.x,n.y,n.z}, {t.x, t.y} };
+
+		vertices.push_back(vtx);
+	}
+	for (unsigned int j = 0; j < mesh->mNumFaces; j++)
+	{
+		aiFace face = mesh->mFaces[j];
+		for (unsigned int l = 0; l < face.mNumIndices; l++)
+			indices.push_back(face.mIndices[l]);
+	}
+
+	glGenVertexArrays(1, &vertexArray);
+
+	GLuint buffers[2] = { vertexBuffer,indexBuffer };
+
+	glGenBuffers(2, buffers);
+
+	vertexBuffer = buffers[0];
+	indexBuffer = buffers[1];
+
+	glBindVertexArray(vertexArray);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(aglVertex), &vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(aglVertex), (void*)offsetof(aglVertex, position));
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(aglVertex), (void*)offsetof(aglVertex, normal));
+
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(aglVertex), (void*) offsetof(aglVertex, texCoord));
+
+	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
+	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+	glBindVertexArray(0);
+
+	materialIndex = mesh->mMaterialIndex;
+
+}
+
+void agl::aglMesh::Draw()
+{
+	shader->Use();
+	glBindVertexArray(vertexArray);
+	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+}
+
+void agl::aglModel::Draw()
+{
+	for (aglMesh* mesh : meshes)
+	{
+		mesh->Draw();
+	}
+}
+
+
+#endif
+
+agl::aglModel::aglModel(string path)
+{
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(path.c_str(), aiProcess_CalcTangentSpace |
+		aiProcess_Triangulate |
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_SortByPType);
+
+	// If the import failed, report it
+	if (scene == nullptr) {
+		cout << (importer.GetErrorString());
+		return;
+	}
+
+	for (int j = 0; j < scene->mNumTextures; ++j)
+	{
+		aiTexture* tex = scene->mTextures[j];
+		cout << tex->mFilename.C_Str() << endl;
+
+	}
+
+	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
+	{
+		aiMesh* aimesh = scene->mMeshes[i];
+
+		aglMesh* mesh = new aglMesh(aimesh);
+
+		meshes.push_back(mesh);
+	}
+
+	for (int i = 0; i < scene->mNumMaterials; ++i)
+	{
+		aiMaterial* aiMat = scene->mMaterials[i];
+
+		vector<aglTextureRef> diffuseTextures = LoadMaterialTextures(aiMat, aiTextureType_DIFFUSE, path);
+		vector<aglTextureRef> normalTextures = LoadMaterialTextures(aiMat, aiTextureType_NORMALS, path);
+
+		aglMaterial* material = new aglMaterial;
+
+		material->textures.insert({ aglMaterial::ALBEDO, diffuseTextures });
+		material->textures.insert({ aglMaterial::NORMAL, normalTextures });
+
+		materials.push_back(material);
+	}
+}
+
+
+void agl::aglModel::SetShader(aglShader* shader)
+{
+	for (aglMesh* mesh : meshes)
+	{
+		mesh->shader = shader;
+	}
+}
+
+vector<agl::aglTextureRef> agl::aglModel::LoadMaterialTextures(aiMaterial* material, aiTextureType type, string modelPath)
+{
+	vector<aglTextureRef> textures;
+
+	for (int i = 0; i < material->GetTextureCount(type); ++i)
+	{
+		aiString str;
+		material->GetTexture(type, i, &str);
+
+		string directory;
+		string path;
+
+		const szt last_slash_idx = modelPath.rfind('\\');
+		if (string::npos != last_slash_idx)
+		{
+			directory = modelPath.substr(0, last_slash_idx);
+		}
+
+		filesystem::path spath(str.C_Str());
+
+		string spaths{ spath.filename().u8string() };
+
+		path = directory + "//" + spaths;
+
+		aglTextureRef ref = { path };
+
+		textures.push_back(ref);
+
+	}
+
+	return textures;
+}
+
 void agl::UpdateFrame()
 {
 
@@ -1876,7 +2358,7 @@ void agl::UpdateFrame()
 	glfwSwapBuffers(window);
 
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #endif
 

@@ -32,7 +32,28 @@ struct UniformBufferObject
 	alignas(16) mat4 model;
 	alignas(16) mat4 view;
 	alignas(16) mat4 proj;
-	vec3 camPos;
+	alignas(16) mat3 normalMatrix;
+	alignas(16) vec3 camPos;
+};
+
+struct Light
+{
+	alignas(16) vec3 position;
+	alignas(16) vec3 color;
+	alignas(4) float power;
+};
+
+struct LightingSettings
+{
+	alignas(32) Light lights[4];
+
+	loop(0, Light, light)
+
+	alignas(16) vec3 albedo;
+
+	alignas(4) int lightAmount;
+	alignas(4) float metallic;
+	alignas(4) float roughness;
 };
 
 #endif // EXT_HPP

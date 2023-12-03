@@ -278,7 +278,9 @@ struct agl {
 		aglRenderPass* renderPass;
 	};
 
-
+	template <typename T>
+	struct aglUniformBuffer;
+	struct PostProcessingSettings;
 
 	struct aglShader
 	{
@@ -302,6 +304,7 @@ struct agl {
 		};
 
 		aglShaderSettings* settings;
+		aglUniformBuffer<PostProcessingSettings>* ppBuffer = nullptr;
 
 		aglShader(aglShaderSettings* settings);
 
@@ -313,7 +316,15 @@ struct agl {
 
 
 		vector<VkDescriptorPoolSize> poolSizes;
-		VkWriteDescriptorSet* CreateDescriptorSetWrite(int frame) { VkWriteDescriptorSet* write = new VkWriteDescriptorSet(); write->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET; write->dstBinding = descriptorWrites[frame].size(); write->dstArrayElement = 0; write->descriptorCount = 1; return write; }
+		VkWriteDescriptorSet* CreateDescriptorSetWrite(int frame, int binding)
+		{
+			VkWriteDescriptorSet* write = new VkWriteDescriptorSet();
+			write->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			write->dstBinding = binding;
+			write->dstArrayElement = 0;
+			write->descriptorCount = 1;
+			return write;
+		}
 		void BindGraphicsPipeline(VkCommandBuffer commandBuffer);
 		void BindDescriptor(VkCommandBuffer commandBuffer, u32 currentImage);
 		VkPipelineLayout GetPipelineLayout();
@@ -321,12 +332,17 @@ struct agl {
 		VkDescriptorPool GetDescriptorPool() { return descriptorPool; }
 		void AttachDescriptorSetLayout(VkDescriptorSetLayoutBinding binding) { bindings.push_back(binding); }
 		void AttachDescriptorPool(VkDescriptorPoolSize pool) { poolSizes.push_back(pool); }
-		void AttachDescriptorWrite(VkWriteDescriptorSet* write, int frame) { descriptorWrites[frame].push_back(*write); }
+		void AttachDescriptorWrite(VkWriteDescriptorSet* write, int frame, int binding)
+		{
+			descriptorWrites[frame][binding] = (*write);
+		}
 		void AttachDescriptorWrites(vector<VkWriteDescriptorSet*> writes, int frame)
 		{
+			int ctr = 0;
 			for (auto write : writes)
 			{
-				descriptorWrites[frame].push_back(*write);
+				AttachDescriptorWrite(write, frame, ctr);
+				ctr++;
 			}
 		}
 		void CreateGraphicsPipeline();
@@ -346,119 +362,29 @@ struct agl {
 		void AttachTexture(aglTexture* texture, u32 binding = -1);
 	};
 
-	struct aglUniformBufferSettings
-	{
-		VkShaderStageFlags flags;
-	};
-
-	template <typename T>
-	struct aglUniformBuffer
-	{
-		aglUniformBuffer(aglShader* shader, aglUniformBufferSettings settings)
-		{
-			this->shader = shader;
-			this->settings = settings;
-
-			// UB creation
-
-			VkDeviceSize bufferSize = sizeof(T);
-
-			uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-			ubMemory.resize(MAX_FRAMES_IN_FLIGHT);
-			mappedUbs.resize(MAX_FRAMES_IN_FLIGHT);
-
-			for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
-			{
-				CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], ubMemory[i]);
-
-				vkMapMemory(GetDevice(), ubMemory[i], 0, bufferSize, 0, &mappedUbs[i]);
-			}
-		}
-
-		void Destroy()
-		{
-			for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-				vkDestroyBuffer(GetDevice(), uniformBuffers[i], nullptr);
-				vkFreeMemory(GetDevice(), ubMemory[i], nullptr);
-			}
-		}
-
-		void Update(T data)
-		{
-			memcpy(mappedUbs[currentFrame], &data, sizeof(data));
-		}
-
-		void CreateBinding(VkDescriptorSetLayoutBinding bind)
-		{
-			binding = bind;
-			shader->AttachDescriptorSetLayout(binding);
-		}
-
-		void CreatePoolSize(VkDescriptorPoolSize poolSz)
-		{
-			poolSize = poolSz;
-			shader->AttachDescriptorPool(poolSize);
-		}
-
-		VkBuffer GetUniformBuffer(int frame) { return uniformBuffers[frame]; }
-
-		void AttachToShader(aglShader* shader)
-		{
-			VkDescriptorSetLayoutBinding uboLayoutBinding{};
-			uboLayoutBinding.binding = shader->poolSizes.size();
-			uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			uboLayoutBinding.descriptorCount = 1;
-			uboLayoutBinding.stageFlags = settings.flags;
-			uboLayoutBinding.pImmutableSamplers = nullptr;
-
-			VkDescriptorPoolSize uboPoolSize{};
-
-			uboPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			uboPoolSize.descriptorCount = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
-
-			shader->AttachDescriptorPool(uboPoolSize);
-
-			CreateBinding(uboLayoutBinding);
-
-			for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
-			{
-
-				VkDescriptorBufferInfo* bufferInfo = new VkDescriptorBufferInfo;
-				bufferInfo->buffer = GetUniformBuffer(i);
-				bufferInfo->offset = 0;
-				bufferInfo->range = sizeof(T);
-
-				VkWriteDescriptorSet* descriptorWrite;
-
-
-				descriptorWrite = shader->CreateDescriptorSetWrite(i);
-				descriptorWrite->descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-				descriptorWrite->pBufferInfo = bufferInfo;
-
-				shader->AttachDescriptorWrite(descriptorWrite, i);
-			}
-		}
-
-		VkDescriptorSetLayout setLayout;
-		vector<VkBuffer> uniformBuffers;
-		vector<VkDeviceMemory> ubMemory;
-		vector<void*> mappedUbs;
-
-		aglShader* shader;
-		VkDescriptorSetLayoutBinding binding;
-		VkDescriptorPoolSize poolSize;
-
-		aglUniformBufferSettings settings;
-
-
-	};
-
 	
 #endif
 
 	// OpenGL variables
 
 #ifdef GRAPHICS_OPENGL
+
+	struct aglTexture;
+	template <typename T>
+	struct aglUniformBuffer;
+	struct PostProcessingSettings;
+
+	struct aglShaderBinding
+	{
+		u32 id=-1;
+		GLenum type;
+		string name;
+	};
+
+    struct aglShaderBinding_txt : aglShaderBinding
+    {
+		aglTexture* texture;
+    };
 
 	struct aglShader
 	{
@@ -474,7 +400,57 @@ struct agl {
 		aglShaderSettings* settings;
 
 		aglShader(aglShaderSettings* settings);
+
+		void Use();
+
+		void AttachTexture(aglTexture* tex, u32 binding);
+		u32 GetBindingByName(string n);
+
+		void setBool(const std::string& name, bool value) const;
+
+		// ------------------------------------------------------------------------
+		void setInt(const std::string& name, int value) const;
+
+		// ------------------------------------------------------------------------
+		void setFloat(const std::string& name, float value) const;
+
+		// ------------------------------------------------------------------------
+		void setVec2(const std::string& name, const vec2& value) const;
+
+		void setVec2(const std::string& name, float x, float y) const;
+
+		// ------------------------------------------------------------------------
+		void setVec3(const std::string& name, const vec3& value) const;
+
+		void setVec3(const std::string& name, float x, float y, float z) const;
+
+		// ------------------------------------------------------------------------
+		void setVec4(const std::string& name, const vec4& value) const;
+
+		void setVec4(const std::string& name, float x, float y, float z, float w) const;
+
+		// ------------------------------------------------------------------------
+		void setMat2(const std::string& name, const mat2& mat) const;
+
+		// ------------------------------------------------------------------------
+		void setMat3(const std::string& name, const mat3& mat) const;
+
+		// ------------------------------------------------------------------------
+		void setMat4(const std::string& name, const mat4& mat) const;
+
+	private:
+
+		u32 CompileShaderStage(GLenum stage, string code);
+
+		u32 LinkShader(vector<u32> shaders);
+
+		vector<aglShaderBinding*> bindings;
+
+		aglUniformBuffer<PostProcessingSettings>* ppBuffer=nullptr;
+
 	};
+
+	static void GLAPIENTRY DebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 
 #endif
 
@@ -486,7 +462,7 @@ struct agl {
 	struct aglVertex
 	{
 		glm::vec3 position;
-		glm::vec3 normal;
+		glm::vec3 normal; 
 		glm::vec2 texCoord;
 
 #ifdef GRAPHICS_VULKAN
@@ -553,6 +529,7 @@ struct agl {
 
 #ifdef GRAPHICS_OPENGL
 		u32 id;
+
 #endif
 
 		int width, height, channels;
@@ -579,13 +556,20 @@ struct agl {
 	struct aglMesh
 	{
 		vector<aglVertex> vertices;
-		vector<u32> indices;
+		vector<unsigned> indices;
 
 #ifdef GRAPHICS_VULKAN
 		VkBuffer vertexBuffer;
 		VkDeviceMemory vertexBufferMemory;
 		VkBuffer indexBuffer;
 		VkDeviceMemory indexBufferMemory;
+
+#else
+
+		u32 vertexBuffer=0;
+		u32 indexBuffer=0;
+		u32 vertexArray=0;
+
 #endif
 
 		aglShader* shader;
@@ -596,6 +580,8 @@ struct agl {
 
 #ifdef GRAPHICS_VULKAN
 		void Draw(aglCommandBuffer* commandBuffer, u32 imageIndex);
+#else
+		void Draw();
 #endif
 
 	
@@ -616,6 +602,8 @@ struct agl {
 
 #ifdef GRAPHICS_VULKAN
 		void Draw(aglCommandBuffer* commandBuffer, u32 imageIndex);
+#else
+		void Draw();
 #endif
 
 		void SetShader(aglShader* shader);
@@ -625,10 +613,172 @@ struct agl {
 		vector<aglTextureRef> LoadMaterialTextures(aiMaterial* material, aiTextureType type, string path);
 	};
 
+	struct aglUniformBufferSettings
+	{
+#ifdef GRAPHICS_VULKAN
+  		VkShaderStageFlags flags;
+#else
+		string name;
+		u32 binding;
+#endif
+	};
+
+	template <typename T>
+	struct aglUniformBuffer
+	{
+		aglUniformBuffer(aglShader* shader, aglUniformBufferSettings settings)
+		{
+			this->shader = shader;
+			this->settings = settings;
+
+			// UB creation
+
+
+#ifdef GRAPHICS_VULKAN
+  			VkDeviceSize bufferSize = sizeof(T);
+
+			uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+			ubMemory.resize(MAX_FRAMES_IN_FLIGHT);
+			mappedUbs.resize(MAX_FRAMES_IN_FLIGHT);
+
+			for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+			{
+				CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], ubMemory[i]);
+
+				vkMapMemory(GetDevice(), ubMemory[i], 0, bufferSize, 0, &mappedUbs[i]);
+			}
+#else
+
+			if (settings.binding >= 32)
+			{
+				throw new exception("Invalid binding.");
+			}
+
+			glGenBuffers(1, &ubo);
+			glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(T), NULL, GL_STATIC_DRAW); // allocate 152 bytes of memory
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+			glBindBufferRange(GL_UNIFORM_BUFFER, settings.binding, ubo, 0, sizeof(T));
+#endif
+		}
+
+		void Destroy()
+		{
+#ifdef GRAPHICS_VULKAN
+			for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+				vkDestroyBuffer(GetDevice(), uniformBuffers[i], nullptr);
+				vkFreeMemory(GetDevice(), ubMemory[i], nullptr);
+			}
+#else
+
+#endif
+		}
+
+		void Update(T data)
+		{
+#ifdef GRAPHICS_VULKAN
+			memcpy(mappedUbs[currentFrame], &data, sizeof(data));
+#else
+			glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+
+			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(T), &data);
+
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+#endif
+
+		}
+
+		void AttachToShader(aglShader* shader, u32 bindingIdx)
+		{
+#ifdef GRAPHICS_VULKAN
+			VkDescriptorSetLayoutBinding uboLayoutBinding{};
+			uboLayoutBinding.binding = bindingIdx;
+			uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			uboLayoutBinding.descriptorCount = 1;
+			uboLayoutBinding.stageFlags = settings.flags;
+			uboLayoutBinding.pImmutableSamplers = nullptr;
+
+			VkDescriptorPoolSize uboPoolSize{};
+
+			uboPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			uboPoolSize.descriptorCount = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
+
+			shader->AttachDescriptorPool(uboPoolSize);
+
+			CreateBinding(uboLayoutBinding);
+
+			for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+			{
+
+				VkDescriptorBufferInfo* bufferInfo = new VkDescriptorBufferInfo;
+				bufferInfo->buffer = GetUniformBuffer(i);
+				bufferInfo->offset = 0;
+				bufferInfo->range = sizeof(T);
+
+				VkWriteDescriptorSet* descriptorWrite;
+
+
+				descriptorWrite = shader->CreateDescriptorSetWrite(i,bindingIdx);
+				descriptorWrite->descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				descriptorWrite->pBufferInfo = bufferInfo;
+
+				shader->AttachDescriptorWrite(descriptorWrite, i,bindingIdx);
+			}
+
+#else
+			unsigned index = glGetUniformBlockIndex(shader->id, settings.name.c_str());
+			glUniformBlockBinding(shader->id, index, settings.binding);
+
+
+#endif
+		}
+
+#ifdef GRAPHICS_OPENGL
+		unsigned ubo;
+#else
+
+
+		void CreateBinding(VkDescriptorSetLayoutBinding bind)
+		{
+			binding = bind;
+			shader->AttachDescriptorSetLayout(binding);
+		}
+
+		void CreatePoolSize(VkDescriptorPoolSize poolSz)
+		{
+			poolSize = poolSz;
+			shader->AttachDescriptorPool(poolSize);
+		}
+
+		VkBuffer GetUniformBuffer(int frame) { return uniformBuffers[frame]; }
+
+		VkDescriptorSetLayout setLayout;
+		vector<VkBuffer> uniformBuffers;
+		vector<VkDeviceMemory> ubMemory;
+		vector<void*> mappedUbs;
+
+		VkDescriptorSetLayoutBinding binding;
+		VkDescriptorPoolSize poolSize;
+
+#endif
+
+		aglShader* shader;
+
+		aglUniformBufferSettings settings;
+
+
+	};
+
+	inline static struct PostProcessingSettings
+	{
+		alignas(4) float gammaCorrection = 2.2f;
+		alignas(4) float radiancePower = 1;
+	} *postProcessing=nullptr;
+
 	static void UpdateFrame();
 	static void Destroy();
 
 };
-
 
 #endif // AGL_HPP
