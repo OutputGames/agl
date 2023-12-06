@@ -1,6 +1,13 @@
 #include "agl_ext.hpp"
 
 #include "agl.hpp"
+#include "ext.hpp"
+#include "maths.hpp"
+
+#define PAR_SHAPES_IMPLEMENTATION
+#include "par_shapes.h"
+
+using namespace std;
 
 
 void agl_ext::aglExtension::Install()
@@ -203,4 +210,232 @@ void aglImGuiExtension::Dockspace()
 	ImGuiID dockspace_id = ImGui::GetID("EngineDS");
 	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
+}
+
+void aglPrimitives::Install()
+{
+
+	vector<aglPrimitiveType> primitives = {
+		aglPrimitiveType::CUBE,
+		aglPrimitiveType::SPHERE,
+		aglPrimitiveType::QUAD
+	};
+
+	for (auto primitive : primitives)
+	{
+		aglPrimitiveType type = primitive;
+
+		switch (type)
+		{
+		case CUBE:
+			prims[type] = GenerateCube(1, 1, 1);
+			break;
+		case QUAD:
+			prims[type] = GenerateQuad();
+		}
+
+	}
+}
+
+void aglPrimitives::DrawPrimitive(aglPrimitiveType type)
+{
+	agl::aglMesh* mesh = prims[type];
+
+	mesh->Draw(agl::baseSurface->commandBuffer, agl::currentFrame);
+}
+
+agl::aglMesh* aglPrimitives::GenerateCube(float width, float height, float length)
+{
+	float vertices[ ] = {
+	-width / 2, -height / 2, length / 2,
+	width / 2, -height / 2, length / 2,
+	width / 2, height / 2, length / 2,
+	-width / 2, height / 2, length / 2,
+	-width / 2, -height / 2, -length / 2,
+	-width / 2, height / 2, -length / 2,
+	width / 2, height / 2, -length / 2,
+	width / 2, -height / 2, -length / 2,
+	-width / 2, height / 2, -length / 2,
+	-width / 2, height / 2, length / 2,
+	width / 2, height / 2, length / 2,
+	width / 2, height / 2, -length / 2,
+	-width / 2, -height / 2, -length / 2,
+	width / 2, -height / 2, -length / 2,
+	width / 2, -height / 2, length / 2,
+	-width / 2, -height / 2, length / 2,
+	width / 2, -height / 2, -length / 2,
+	width / 2, height / 2, -length / 2,
+	width / 2, height / 2, length / 2,
+	width / 2, -height / 2, length / 2,
+	-width / 2, -height / 2, -length / 2,
+	-width / 2, -height / 2, length / 2,
+	-width / 2, height / 2, length / 2,
+	-width / 2, height / 2, -length / 2
+	};
+
+	float texcoords[ ] = {
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f
+	};
+
+	float normals[ ] = {
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f,-1.0f,
+		0.0f, 0.0f,-1.0f,
+		0.0f, 0.0f,-1.0f,
+		0.0f, 0.0f,-1.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f,-1.0f, 0.0f,
+		0.0f,-1.0f, 0.0f,
+		0.0f,-1.0f, 0.0f,
+		0.0f,-1.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f
+	};
+
+
+
+	vector<agl::aglVertex> verts;
+	vector<unsigned> indices;
+
+	for (int i = 0; i < std::size(vertices); i+=3)
+	{
+		agl::aglVertex vtx = {};
+
+		float v[3] = { vertices[i], vertices[i + 1], vertices[i + 2] };
+		float n[3] = { normals[i], normals[i + 1], normals[i + 2] };
+
+		vtx.position = { v[0],v[1],v[2] };
+		vtx.normal = { n[0],n[1],n[2] };
+
+		verts.push_back(vtx);
+
+	}
+
+	int j = 0;
+	for (int i = 0; i < std::size(texcoords); i+=2)
+	{
+
+		verts[j].texCoord = { texcoords[i], texcoords[i + 1] };
+
+		j++;
+	}
+
+	int k = 0;
+
+	int idxCt = ((size(vertices)/3) / 2) * 3;
+
+	indices.resize(idxCt);
+
+	// Indices can be initialized right now
+	for (int i = 0; i < idxCt; i += 6)
+	{
+		indices[i] = 4 * k;
+		indices[i + 1] = 4 * k + 1;
+		indices[i + 2] = 4 * k + 2;
+		indices[i + 3] = 4 * k;
+		indices[i + 4] = 4 * k + 2;
+		indices[i + 5] = 4 * k + 3;
+
+		k++;
+	}
+
+
+	agl::aglMesh* mesh = new agl::aglMesh({verts,indices});
+
+	return mesh;
+}
+
+agl::aglMesh* aglPrimitives::GenerateSphere(float radius, int rings, int slices)
+{
+	if (rings >= 3 && slices >= 3)
+	{
+		par_shapes_mesh* sphere = par_shapes_create_parametric_sphere(slices, rings);
+		par_shapes_scale(sphere, radius, radius, radius);
+
+		vector<agl::aglVertex> verts;
+		vector<unsigned> indices;
+
+		for (int i = 0; i < sphere->npoints; i+=3)
+		{
+			agl::aglVertex vtx = {};
+
+
+
+
+			vtx.position = { sphere->points[i], sphere->points[i+1], sphere->points[i+2]};
+			vtx.normal = { sphere->normals[i], sphere->normals[i + 1], sphere->normals[i] + 2 };
+
+			verts.push_back(vtx);
+
+		}
+
+		int j = 0;
+		for (int i = 0; i < sphere->ntriangles*2; i += 2)
+		{
+
+			//verts[j].texCoord = { sphere->tcoords[i], sphere->tcoords[i + 1] };
+
+			j++;
+		}
+
+
+
+		par_shapes_free_mesh(sphere);
+
+		agl::aglMesh* mesh = new agl::aglMesh({ verts,indices });
+
+		return mesh;
+	}
+	return nullptr;
+}
+
+agl::aglMesh* aglPrimitives::GenerateQuad()
+{
+	vector<agl::aglVertex> verts = {
+		agl::aglVertex{{-1.0f, -1.0f,1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+		agl::aglVertex{{1.0f, -1.0f,1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+		agl::aglVertex{{1.0f, 1.0f,1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+		agl::aglVertex{{-1.0f, 1.0f,1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+
+	};
+	vector<unsigned> indices = {
+		0,1,2,2,3,0
+	};
+
+	return new agl::aglMesh({ verts,indices });
 }

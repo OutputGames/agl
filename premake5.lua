@@ -6,8 +6,23 @@ project "AuroraGraphicsLibrary"
    compileas "C++"
    targetdir "%{_OPTIONS['corelocation']}/bin/%{cfg.buildcfg}"
 
-   files { "include/**", "resources/shaders/**", ".editorconfig" }
-   includedirs { "vendor/glfw/include/", "vendor/glm/", "include/", "vendor/assimp/include/", "vendor/","vendor/imgui/" }
+   files {
+       "include/**",
+        "resources/shaders/**",
+         ".editorconfig",
+         "%{_OPTIONS['utilslocation']}/include/**" ,
+         "%{_OPTIONS['utilslocation']}/vendor/glm/glm/**" ,
+         "vendor/**.h"
+   }
+   includedirs { 
+      "vendor/glfw/include/", 
+       "include/",
+        "vendor/assimp/include/",
+         "vendor/","vendor/imgui/" ,
+         "%{_OPTIONS['utilslocation']}".."/include", 
+         "%{_OPTIONS['utilslocation']}".."/vendor/glm" 
+      }
+   
    files {"vendor/imgui/backends/imgui_impl_glfw.*", "vendor/imgui/*"}
    files {"vendor/imgui/misc/debuggers/**", "vendor/imgui/misc/cpp/**"}
     libdirs {"vendor/glfw/lib-vc2022/","vendor/assimp/lib/Release/"}

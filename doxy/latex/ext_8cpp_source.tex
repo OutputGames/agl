@@ -1,0 +1,22 @@
+\doxysection{ext.\+cpp}
+\hypertarget{ext_8cpp_source}{}\label{ext_8cpp_source}\index{include/agl/ext.cpp@{include/agl/ext.cpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}ext.hpp"{}}}
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00005}00005\ \textcolor{keywordtype}{void}\ Camera::Update(vec2\ extent)}
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00006}00006\ \{}
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00007}00007\ \ \ \ \ vec3\ direction\ =\ normalize(position\ -\/\ target);}
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00009}00009\ \ \ \ \ right\ =\ normalize(cross(up,\ direction));}
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00010}00010\ \ \ \ \ up\ =\ cross(direction,\ right);}
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00012}00012\ \ \ \ \ view\ =\ lookAt(position,\ target,\ \{\ 0,1,0\ \});}
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00014}00014\ \ \ \ \ proj\ =\ glm::perspective(glm::radians(fov),\ flt\ extent.x\ /\ flt\ extent.y,\ 0.1f,\ 100.0f);}
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{ext_8cpp_source_l00016}00016\ \}}
+
+\end{DoxyCode}

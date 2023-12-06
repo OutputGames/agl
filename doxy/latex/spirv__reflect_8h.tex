@@ -1,0 +1,466 @@
+\doxysection{include/spirv\+\_\+reflect/spirv\+\_\+reflect.h File Reference}
+\hypertarget{spirv__reflect_8h}{}\label{spirv__reflect_8h}\index{include/spirv\_reflect/spirv\_reflect.h@{include/spirv\_reflect/spirv\_reflect.h}}
+{\ttfamily \#include "{}spirv-\/headers/spirv.\+h"{}}\newline
+{\ttfamily \#include $<$stdint.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_numeric_traits}{Spv\+Reflect\+Numeric\+Traits}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_numeric_traits_1_1_scalar}{Spv\+Reflect\+Numeric\+Traits\+::\+Scalar}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_numeric_traits_1_1_vector}{Spv\+Reflect\+Numeric\+Traits\+::\+Vector}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_numeric_traits_1_1_matrix}{Spv\+Reflect\+Numeric\+Traits\+::\+Matrix}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_image_traits}{Spv\+Reflect\+Image\+Traits}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_array_traits}{Spv\+Reflect\+Array\+Traits}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_binding_array_traits}{Spv\+Reflect\+Binding\+Array\+Traits}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_type_description}{Spv\+Reflect\+Type\+Description}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_type_description_1_1_traits}{Spv\+Reflect\+Type\+Description\+::\+Traits}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_block_variable}{Spv\+Reflect\+Block\+Variable}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_descriptor_binding}{Spv\+Reflect\+Descriptor\+Binding}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_descriptor_set}{Spv\+Reflect\+Descriptor\+Set}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_entry_point}{Spv\+Reflect\+Entry\+Point}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_entry_point_1_1_local_size}{Spv\+Reflect\+Entry\+Point\+::\+Local\+Size}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_capability}{Spv\+Reflect\+Capability}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}}
+\item 
+struct \mbox{\hyperlink{struct_spv_reflect_shader_module_1_1_internal}{Spv\+Reflect\+Shader\+Module\+::\+Internal}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{spirv__reflect_8h_abc75b73e9b6b179c2ea0a3e5719ee3e4}\label{spirv__reflect_8h_abc75b73e9b6b179c2ea0a3e5719ee3e4} 
+\#define {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DEPRECATED}(msg\+\_\+str)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{spirv__reflect_8h_ad891c6fb4b936f76c885fe568fa918e4}\label{spirv__reflect_8h_ad891c6fb4b936f76c885fe568fa918e4} 
+typedef enum Spv\+Reflect\+Result {\bfseries Spv\+Reflect\+Result}
+\item 
+\Hypertarget{spirv__reflect_8h_a1c529c42bf54f3d966c1c5ee0ed2b6ac}\label{spirv__reflect_8h_a1c529c42bf54f3d966c1c5ee0ed2b6ac} 
+typedef enum \mbox{\hyperlink{spirv__reflect_8h_a4516b578034324fb304eb91d7d15ea6f}{Spv\+Reflect\+Module\+Flag\+Bits}} {\bfseries Spv\+Reflect\+Module\+Flag\+Bits}
+\item 
+\Hypertarget{spirv__reflect_8h_a43d01559a45a3a664cdb87101ed7187e}\label{spirv__reflect_8h_a43d01559a45a3a664cdb87101ed7187e} 
+typedef uint32\+\_\+t {\bfseries Spv\+Reflect\+Module\+Flags}
+\item 
+\Hypertarget{spirv__reflect_8h_ab2d4f2465fce43cd09a6bd86712e11e4}\label{spirv__reflect_8h_ab2d4f2465fce43cd09a6bd86712e11e4} 
+typedef enum Spv\+Reflect\+Type\+Flag\+Bits {\bfseries Spv\+Reflect\+Type\+Flag\+Bits}
+\item 
+\Hypertarget{spirv__reflect_8h_a3eca305ac86fa66c2bae0a43226b9fd9}\label{spirv__reflect_8h_a3eca305ac86fa66c2bae0a43226b9fd9} 
+typedef uint32\+\_\+t {\bfseries Spv\+Reflect\+Type\+Flags}
+\item 
+\Hypertarget{spirv__reflect_8h_a8ff496d673b7e47ce32a46d0033cec3f}\label{spirv__reflect_8h_a8ff496d673b7e47ce32a46d0033cec3f} 
+typedef enum Spv\+Reflect\+Decoration\+Flag\+Bits {\bfseries Spv\+Reflect\+Decoration\+Flag\+Bits}
+\item 
+\Hypertarget{spirv__reflect_8h_a81711af0ed049889a0cd1acf31f720a8}\label{spirv__reflect_8h_a81711af0ed049889a0cd1acf31f720a8} 
+typedef uint32\+\_\+t {\bfseries Spv\+Reflect\+Decoration\+Flags}
+\item 
+\Hypertarget{spirv__reflect_8h_a1f5ef19480081e11321822c0f1d1f95d}\label{spirv__reflect_8h_a1f5ef19480081e11321822c0f1d1f95d} 
+typedef enum Spv\+Reflect\+Resource\+Type {\bfseries Spv\+Reflect\+Resource\+Type}
+\item 
+\Hypertarget{spirv__reflect_8h_a7c240d70df716a1979a88083aa482237}\label{spirv__reflect_8h_a7c240d70df716a1979a88083aa482237} 
+typedef enum Spv\+Reflect\+Format {\bfseries Spv\+Reflect\+Format}
+\item 
+\Hypertarget{spirv__reflect_8h_aafc2890a467ec987ce4660ba7d27c18c}\label{spirv__reflect_8h_aafc2890a467ec987ce4660ba7d27c18c} 
+typedef uint32\+\_\+t {\bfseries Spv\+Reflect\+Variable\+Flags}
+\item 
+\Hypertarget{spirv__reflect_8h_a7449851cad4b9711db780b68ac4888a7}\label{spirv__reflect_8h_a7449851cad4b9711db780b68ac4888a7} 
+typedef enum Spv\+Reflect\+Descriptor\+Type {\bfseries Spv\+Reflect\+Descriptor\+Type}
+\item 
+\Hypertarget{spirv__reflect_8h_a28698e1336a89890c64f438b23c6b453}\label{spirv__reflect_8h_a28698e1336a89890c64f438b23c6b453} 
+typedef enum Spv\+Reflect\+Shader\+Stage\+Flag\+Bits {\bfseries Spv\+Reflect\+Shader\+Stage\+Flag\+Bits}
+\item 
+\Hypertarget{spirv__reflect_8h_a2394707e13b4670fd54c64549aaac438}\label{spirv__reflect_8h_a2394707e13b4670fd54c64549aaac438} 
+typedef enum Spv\+Reflect\+Generator {\bfseries Spv\+Reflect\+Generator}
+\item 
+\Hypertarget{spirv__reflect_8h_ad701bbb775a56789926088bf0a4b7d2a}\label{spirv__reflect_8h_ad701bbb775a56789926088bf0a4b7d2a} 
+typedef struct \mbox{\hyperlink{struct_spv_reflect_numeric_traits}{Spv\+Reflect\+Numeric\+Traits}} {\bfseries Spv\+Reflect\+Numeric\+Traits}
+\item 
+\Hypertarget{spirv__reflect_8h_acd5b69bf8395b39c3ad035e98146db89}\label{spirv__reflect_8h_acd5b69bf8395b39c3ad035e98146db89} 
+typedef struct \mbox{\hyperlink{struct_spv_reflect_image_traits}{Spv\+Reflect\+Image\+Traits}} {\bfseries Spv\+Reflect\+Image\+Traits}
+\item 
+\Hypertarget{spirv__reflect_8h_ada6ce76ddb9529f1ee6e3d49ac7f775f}\label{spirv__reflect_8h_ada6ce76ddb9529f1ee6e3d49ac7f775f} 
+typedef struct \mbox{\hyperlink{struct_spv_reflect_array_traits}{Spv\+Reflect\+Array\+Traits}} {\bfseries Spv\+Reflect\+Array\+Traits}
+\item 
+\Hypertarget{spirv__reflect_8h_aa33e3c9cdde6e9053995a16deea2af1d}\label{spirv__reflect_8h_aa33e3c9cdde6e9053995a16deea2af1d} 
+typedef struct \mbox{\hyperlink{struct_spv_reflect_binding_array_traits}{Spv\+Reflect\+Binding\+Array\+Traits}} {\bfseries Spv\+Reflect\+Binding\+Array\+Traits}
+\item 
+\Hypertarget{spirv__reflect_8h_a64b15fd02b2030c15b22252453800da4}\label{spirv__reflect_8h_a64b15fd02b2030c15b22252453800da4} 
+typedef struct \mbox{\hyperlink{struct_spv_reflect_type_description}{Spv\+Reflect\+Type\+Description}} {\bfseries Spv\+Reflect\+Type\+Description}
+\item 
+\Hypertarget{spirv__reflect_8h_aec23537217901ad6c10c3abb654f40b7}\label{spirv__reflect_8h_aec23537217901ad6c10c3abb654f40b7} 
+typedef struct \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} {\bfseries Spv\+Reflect\+Interface\+Variable}
+\item 
+\Hypertarget{spirv__reflect_8h_a6bf3b673dd41514978fc937691f27257}\label{spirv__reflect_8h_a6bf3b673dd41514978fc937691f27257} 
+typedef struct \mbox{\hyperlink{struct_spv_reflect_block_variable}{Spv\+Reflect\+Block\+Variable}} {\bfseries Spv\+Reflect\+Block\+Variable}
+\item 
+\Hypertarget{spirv__reflect_8h_a0b678888967fa39ba0c8b96ef16fdbea}\label{spirv__reflect_8h_a0b678888967fa39ba0c8b96ef16fdbea} 
+typedef struct \mbox{\hyperlink{struct_spv_reflect_descriptor_binding}{Spv\+Reflect\+Descriptor\+Binding}} {\bfseries Spv\+Reflect\+Descriptor\+Binding}
+\item 
+\Hypertarget{spirv__reflect_8h_a1890b3e5b9d3ed0a86bcff9254b0089b}\label{spirv__reflect_8h_a1890b3e5b9d3ed0a86bcff9254b0089b} 
+typedef struct \mbox{\hyperlink{struct_spv_reflect_descriptor_set}{Spv\+Reflect\+Descriptor\+Set}} {\bfseries Spv\+Reflect\+Descriptor\+Set}
+\item 
+\Hypertarget{spirv__reflect_8h_af767a3b95428240bdf39b1ad9199d8e4}\label{spirv__reflect_8h_af767a3b95428240bdf39b1ad9199d8e4} 
+typedef struct \mbox{\hyperlink{struct_spv_reflect_entry_point}{Spv\+Reflect\+Entry\+Point}} {\bfseries Spv\+Reflect\+Entry\+Point}
+\item 
+\Hypertarget{spirv__reflect_8h_a3b023a0d6ec8fb4d09e3b739a0f8e9cc}\label{spirv__reflect_8h_a3b023a0d6ec8fb4d09e3b739a0f8e9cc} 
+typedef struct \mbox{\hyperlink{struct_spv_reflect_capability}{Spv\+Reflect\+Capability}} {\bfseries Spv\+Reflect\+Capability}
+\item 
+\Hypertarget{spirv__reflect_8h_a6648c5aa5ef0c8500652fe0f541db02a}\label{spirv__reflect_8h_a6648c5aa5ef0c8500652fe0f541db02a} 
+typedef struct \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} {\bfseries Spv\+Reflect\+Shader\+Module}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{spirv__reflect_8h_a12b1e9fbe4ca589075bfe084dedd454e}\label{spirv__reflect_8h_a12b1e9fbe4ca589075bfe084dedd454e} 
+enum {\bfseries Spv\+Reflect\+Result} \{ \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+SUCCESS}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+NOT\+\_\+\+READY}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+PARSE\+\_\+\+FAILED}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+ALLOC\+\_\+\+FAILED}
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+RANGE\+\_\+\+EXCEEDED}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+NULL\+\_\+\+POINTER}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+INTERNAL\+\_\+\+ERROR}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+COUNT\+\_\+\+MISMATCH}
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+ELEMENT\+\_\+\+NOT\+\_\+\+FOUND}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+SPIRV\+\_\+\+INVALID\+\_\+\+CODE\+\_\+\+SIZE}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+SPIRV\+\_\+\+INVALID\+\_\+\+MAGIC\+\_\+\+NUMBER}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+SPIRV\+\_\+\+UNEXPECTED\+\_\+\+EOF}
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+SPIRV\+\_\+\+INVALID\+\_\+\+ID\+\_\+\+REFERENCE}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+SPIRV\+\_\+\+SET\+\_\+\+NUMBER\+\_\+\+OVERFLOW}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+SPIRV\+\_\+\+INVALID\+\_\+\+STORAGE\+\_\+\+CLASS}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+SPIRV\+\_\+\+RECURSION}
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+SPIRV\+\_\+\+INVALID\+\_\+\+INSTRUCTION}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+SPIRV\+\_\+\+UNEXPECTED\+\_\+\+BLOCK\+\_\+\+DATA}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+SPIRV\+\_\+\+INVALID\+\_\+\+BLOCK\+\_\+\+MEMBER\+\_\+\+REFERENCE}
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+SPIRV\+\_\+\+INVALID\+\_\+\+ENTRY\+\_\+\+POINT}
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESULT\+\_\+\+ERROR\+\_\+\+SPIRV\+\_\+\+INVALID\+\_\+\+EXECUTION\+\_\+\+MODE}
+ \}
+\item 
+enum \mbox{\hyperlink{spirv__reflect_8h_a4516b578034324fb304eb91d7d15ea6f}{Spv\+Reflect\+Module\+Flag\+Bits}} \{ {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+MODULE\+\_\+\+FLAG\+\_\+\+NONE} = 0x00000000
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+MODULE\+\_\+\+FLAG\+\_\+\+NO\+\_\+\+COPY} = 0x00000001
+ \}
+\item 
+\Hypertarget{spirv__reflect_8h_aa05928c68e156a5b9580a5a3467d4537}\label{spirv__reflect_8h_aa05928c68e156a5b9580a5a3467d4537} 
+enum {\bfseries Spv\+Reflect\+Type\+Flag\+Bits} \{ \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+UNDEFINED} = 0x00000000
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+VOID} = 0x00000001
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+BOOL} = 0x00000002
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+INT} = 0x00000004
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+FLOAT} = 0x00000008
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+VECTOR} = 0x00000100
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+MATRIX} = 0x00000200
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+EXTERNAL\+\_\+\+IMAGE} = 0x00010000
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+EXTERNAL\+\_\+\+SAMPLER} = 0x00020000
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+EXTERNAL\+\_\+\+SAMPLED\+\_\+\+IMAGE} = 0x00040000
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+EXTERNAL\+\_\+\+BLOCK} = 0x00080000
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+EXTERNAL\+\_\+\+ACCELERATION\+\_\+\+STRUCTURE} = 0x00100000
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+EXTERNAL\+\_\+\+MASK} = 0x00\+FF0000
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+STRUCT} = 0x10000000
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+TYPE\+\_\+\+FLAG\+\_\+\+ARRAY} = 0x20000000
+ \}
+\item 
+\Hypertarget{spirv__reflect_8h_ae5bb6e7ac18ba8fb21aee6e2a116dcb3}\label{spirv__reflect_8h_ae5bb6e7ac18ba8fb21aee6e2a116dcb3} 
+enum {\bfseries Spv\+Reflect\+Decoration\+Flag\+Bits} \{ \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DECORATION\+\_\+\+NONE} = 0x00000000
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DECORATION\+\_\+\+BLOCK} = 0x00000001
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DECORATION\+\_\+\+BUFFER\+\_\+\+BLOCK} = 0x00000002
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DECORATION\+\_\+\+ROW\+\_\+\+MAJOR} = 0x00000004
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DECORATION\+\_\+\+COLUMN\+\_\+\+MAJOR} = 0x00000008
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DECORATION\+\_\+\+BUILT\+\_\+\+IN} = 0x00000010
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DECORATION\+\_\+\+NOPERSPECTIVE} = 0x00000020
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DECORATION\+\_\+\+FLAT} = 0x00000040
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DECORATION\+\_\+\+NON\+\_\+\+WRITABLE} = 0x00000080
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DECORATION\+\_\+\+RELAXED\+\_\+\+PRECISION} = 0x00000100
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DECORATION\+\_\+\+NON\+\_\+\+READABLE} = 0x00000200
+ \}
+\item 
+\Hypertarget{spirv__reflect_8h_a45de5dd380c07cf0eb0b0d00da6c1134}\label{spirv__reflect_8h_a45de5dd380c07cf0eb0b0d00da6c1134} 
+enum {\bfseries Spv\+Reflect\+Resource\+Type} \{ \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESOURCE\+\_\+\+FLAG\+\_\+\+UNDEFINED} = 0x00000000
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESOURCE\+\_\+\+FLAG\+\_\+\+SAMPLER} = 0x00000001
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESOURCE\+\_\+\+FLAG\+\_\+\+CBV} = 0x00000002
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESOURCE\+\_\+\+FLAG\+\_\+\+SRV} = 0x00000004
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+RESOURCE\+\_\+\+FLAG\+\_\+\+UAV} = 0x00000008
+ \}
+\item 
+\Hypertarget{spirv__reflect_8h_a12ad37e8e54faea70c1da5cdeabca3c3}\label{spirv__reflect_8h_a12ad37e8e54faea70c1da5cdeabca3c3} 
+enum {\bfseries Spv\+Reflect\+Format} \{ \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+UNDEFINED} = 0
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R32\+\_\+\+UINT} = 98
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R32\+\_\+\+SINT} = 99
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R32\+\_\+\+SFLOAT} = 100
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R32\+G32\+\_\+\+UINT} = 101
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R32\+G32\+\_\+\+SINT} = 102
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R32\+G32\+\_\+\+SFLOAT} = 103
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R32\+G32\+B32\+\_\+\+UINT} = 104
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R32\+G32\+B32\+\_\+\+SINT} = 105
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R32\+G32\+B32\+\_\+\+SFLOAT} = 106
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R32\+G32\+B32\+A32\+\_\+\+UINT} = 107
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R32\+G32\+B32\+A32\+\_\+\+SINT} = 108
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R32\+G32\+B32\+A32\+\_\+\+SFLOAT} = 109
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R64\+\_\+\+UINT} = 110
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R64\+\_\+\+SINT} = 111
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R64\+\_\+\+SFLOAT} = 112
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R64\+G64\+\_\+\+UINT} = 113
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R64\+G64\+\_\+\+SINT} = 114
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R64\+G64\+\_\+\+SFLOAT} = 115
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R64\+G64\+B64\+\_\+\+UINT} = 116
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R64\+G64\+B64\+\_\+\+SINT} = 117
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R64\+G64\+B64\+\_\+\+SFLOAT} = 118
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R64\+G64\+B64\+A64\+\_\+\+UINT} = 119
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R64\+G64\+B64\+A64\+\_\+\+SINT} = 120
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+FORMAT\+\_\+\+R64\+G64\+B64\+A64\+\_\+\+SFLOAT} = 121
+ \}
+\item 
+\Hypertarget{spirv__reflect_8h_ade9b9f6eb07fa108d4ffd4760061e7ad}\label{spirv__reflect_8h_ade9b9f6eb07fa108d4ffd4760061e7ad} 
+enum {\bfseries Spv\+Reflect\+Variable\+Flag\+Bits} \{ {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+VARIABLE\+\_\+\+FLAGS\+\_\+\+NONE} = 0x00000000
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+VARIABLE\+\_\+\+FLAGS\+\_\+\+UNUSED} = 0x00000001
+ \}
+\item 
+\Hypertarget{spirv__reflect_8h_aad330712870d1da2e73c071ddd327d0a}\label{spirv__reflect_8h_aad330712870d1da2e73c071ddd327d0a} 
+enum {\bfseries Spv\+Reflect\+Descriptor\+Type} \{ \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DESCRIPTOR\+\_\+\+TYPE\+\_\+\+SAMPLER} = 0
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DESCRIPTOR\+\_\+\+TYPE\+\_\+\+COMBINED\+\_\+\+IMAGE\+\_\+\+SAMPLER} = 1
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DESCRIPTOR\+\_\+\+TYPE\+\_\+\+SAMPLED\+\_\+\+IMAGE} = 2
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DESCRIPTOR\+\_\+\+TYPE\+\_\+\+STORAGE\+\_\+\+IMAGE} = 3
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DESCRIPTOR\+\_\+\+TYPE\+\_\+\+UNIFORM\+\_\+\+TEXEL\+\_\+\+BUFFER} = 4
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DESCRIPTOR\+\_\+\+TYPE\+\_\+\+STORAGE\+\_\+\+TEXEL\+\_\+\+BUFFER} = 5
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DESCRIPTOR\+\_\+\+TYPE\+\_\+\+UNIFORM\+\_\+\+BUFFER} = 6
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DESCRIPTOR\+\_\+\+TYPE\+\_\+\+STORAGE\+\_\+\+BUFFER} = 7
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DESCRIPTOR\+\_\+\+TYPE\+\_\+\+UNIFORM\+\_\+\+BUFFER\+\_\+\+DYNAMIC} = 8
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DESCRIPTOR\+\_\+\+TYPE\+\_\+\+STORAGE\+\_\+\+BUFFER\+\_\+\+DYNAMIC} = 9
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DESCRIPTOR\+\_\+\+TYPE\+\_\+\+INPUT\+\_\+\+ATTACHMENT} = 10
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+DESCRIPTOR\+\_\+\+TYPE\+\_\+\+ACCELERATION\+\_\+\+STRUCTURE\+\_\+\+KHR} = 1000150000
+ \}
+\item 
+\Hypertarget{spirv__reflect_8h_aab10b0f7469a41ddec2cb0cf05e9f155}\label{spirv__reflect_8h_aab10b0f7469a41ddec2cb0cf05e9f155} 
+enum {\bfseries Spv\+Reflect\+Shader\+Stage\+Flag\+Bits} \{ \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+VERTEX\+\_\+\+BIT} = 0x00000001
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+TESSELLATION\+\_\+\+CONTROL\+\_\+\+BIT} = 0x00000002
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+TESSELLATION\+\_\+\+EVALUATION\+\_\+\+BIT} = 0x00000004
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+GEOMETRY\+\_\+\+BIT} = 0x00000008
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+FRAGMENT\+\_\+\+BIT} = 0x00000010
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+COMPUTE\+\_\+\+BIT} = 0x00000020
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+TASK\+\_\+\+BIT\+\_\+\+NV} = 0x00000040
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+TASK\+\_\+\+BIT\+\_\+\+EXT} = SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+TASK\+\_\+\+BIT\+\_\+\+NV
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+MESH\+\_\+\+BIT\+\_\+\+NV} = 0x00000080
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+MESH\+\_\+\+BIT\+\_\+\+EXT} = SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+MESH\+\_\+\+BIT\+\_\+\+NV
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+RAYGEN\+\_\+\+BIT\+\_\+\+KHR} = 0x00000100
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+ANY\+\_\+\+HIT\+\_\+\+BIT\+\_\+\+KHR} = 0x00000200
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+CLOSEST\+\_\+\+HIT\+\_\+\+BIT\+\_\+\+KHR} = 0x00000400
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+MISS\+\_\+\+BIT\+\_\+\+KHR} = 0x00000800
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+INTERSECTION\+\_\+\+BIT\+\_\+\+KHR} = 0x00001000
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SHADER\+\_\+\+STAGE\+\_\+\+CALLABLE\+\_\+\+BIT\+\_\+\+KHR} = 0x00002000
+ \}
+\item 
+\Hypertarget{spirv__reflect_8h_a2f9600c08cab79728e4ff5d0b8920389}\label{spirv__reflect_8h_a2f9600c08cab79728e4ff5d0b8920389} 
+enum {\bfseries Spv\+Reflect\+Generator} \{ \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+GENERATOR\+\_\+\+KHRONOS\+\_\+\+LLVM\+\_\+\+SPIRV\+\_\+\+TRANSLATOR} = 6
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+GENERATOR\+\_\+\+KHRONOS\+\_\+\+SPIRV\+\_\+\+TOOLS\+\_\+\+ASSEMBLER} = 7
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+GENERATOR\+\_\+\+KHRONOS\+\_\+\+GLSLANG\+\_\+\+REFERENCE\+\_\+\+FRONT\+\_\+\+END} = 8
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+GENERATOR\+\_\+\+GOOGLE\+\_\+\+SHADERC\+\_\+\+OVER\+\_\+\+GLSLANG} = 13
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+GENERATOR\+\_\+\+GOOGLE\+\_\+\+SPIREGG} = 14
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+GENERATOR\+\_\+\+GOOGLE\+\_\+\+RSPIRV} = 15
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+GENERATOR\+\_\+\+X\+\_\+\+LEGEND\+\_\+\+MESA\+\_\+\+MESAIR\+\_\+\+SPIRV\+\_\+\+TRANSLATOR} = 16
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+GENERATOR\+\_\+\+KHRONOS\+\_\+\+SPIRV\+\_\+\+TOOLS\+\_\+\+LINKER} = 17
+, \newline
+{\bfseries SPV\+\_\+\+REFLECT\+\_\+\+GENERATOR\+\_\+\+WINE\+\_\+\+VKD3\+D\+\_\+\+SHADER\+\_\+\+COMPILER} = 18
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+GENERATOR\+\_\+\+CLAY\+\_\+\+CLAY\+\_\+\+SHADER\+\_\+\+COMPILER} = 19
+ \}
+\item 
+\Hypertarget{spirv__reflect_8h_a61dadd085c1777f559549e05962b2c9e}\label{spirv__reflect_8h_a61dadd085c1777f559549e05962b2c9e} 
+enum \{ {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+MAX\+\_\+\+ARRAY\+\_\+\+DIMS} = 32
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+MAX\+\_\+\+DESCRIPTOR\+\_\+\+SETS} = 64
+ \}
+\item 
+\Hypertarget{spirv__reflect_8h_a726ca809ffd3d67ab4b8476646f26635}\label{spirv__reflect_8h_a726ca809ffd3d67ab4b8476646f26635} 
+enum \{ {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+BINDING\+\_\+\+NUMBER\+\_\+\+DONT\+\_\+\+CHANGE} = \texorpdfstring{$\sim$}{\string~}0
+, {\bfseries SPV\+\_\+\+REFLECT\+\_\+\+SET\+\_\+\+NUMBER\+\_\+\+DONT\+\_\+\+CHANGE} = \texorpdfstring{$\sim$}{\string~}0
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{spirv__reflect_8h_a18179b39942803276dccd5965641e9a6}\label{spirv__reflect_8h_a18179b39942803276dccd5965641e9a6} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Create\+Shader\+Module} (size\+\_\+t size, const void \texorpdfstring{$\ast$}{*}p\+\_\+code, \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module)
+\item 
+\Hypertarget{spirv__reflect_8h_ae39c00c63b1906c7c2d35800387a4a8a}\label{spirv__reflect_8h_ae39c00c63b1906c7c2d35800387a4a8a} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Create\+Shader\+Module2} (Spv\+Reflect\+Module\+Flags flags, size\+\_\+t size, const void \texorpdfstring{$\ast$}{*}p\+\_\+code, \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module)
+\item 
+\Hypertarget{spirv__reflect_8h_aca9e984269c47bcee1f4616a3c0aaa4a}\label{spirv__reflect_8h_aca9e984269c47bcee1f4616a3c0aaa4a} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Get\+Shader\+Module} (size\+\_\+t size, const void \texorpdfstring{$\ast$}{*}p\+\_\+code, \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module)
+\item 
+\Hypertarget{spirv__reflect_8h_ad489add6444394e6c78a05564c166d72}\label{spirv__reflect_8h_ad489add6444394e6c78a05564c166d72} 
+void {\bfseries spv\+Reflect\+Destroy\+Shader\+Module} (\mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module)
+\item 
+\Hypertarget{spirv__reflect_8h_a5dda621a12474d631edc8b1b39dd7eb4}\label{spirv__reflect_8h_a5dda621a12474d631edc8b1b39dd7eb4} 
+uint32\+\_\+t {\bfseries spv\+Reflect\+Get\+Code\+Size} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module)
+\item 
+\Hypertarget{spirv__reflect_8h_a86ba82c8ff62122277c060052b2d274f}\label{spirv__reflect_8h_a86ba82c8ff62122277c060052b2d274f} 
+const uint32\+\_\+t \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Code} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module)
+\item 
+\Hypertarget{spirv__reflect_8h_aaef448dfa16789e01dea828831938713}\label{spirv__reflect_8h_aaef448dfa16789e01dea828831938713} 
+const \mbox{\hyperlink{struct_spv_reflect_entry_point}{Spv\+Reflect\+Entry\+Point}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Entry\+Point} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point)
+\item 
+\Hypertarget{spirv__reflect_8h_aeb4613c565d7bd13bd01b193b8a6c65f}\label{spirv__reflect_8h_aeb4613c565d7bd13bd01b193b8a6c65f} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Enumerate\+Descriptor\+Bindings} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t \texorpdfstring{$\ast$}{*}p\+\_\+count, \mbox{\hyperlink{struct_spv_reflect_descriptor_binding}{Spv\+Reflect\+Descriptor\+Binding}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}pp\+\_\+bindings)
+\item 
+\Hypertarget{spirv__reflect_8h_ae1d83da07f5d10ecf8d55fcf68fc276c}\label{spirv__reflect_8h_ae1d83da07f5d10ecf8d55fcf68fc276c} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Enumerate\+Entry\+Point\+Descriptor\+Bindings} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point, uint32\+\_\+t \texorpdfstring{$\ast$}{*}p\+\_\+count, \mbox{\hyperlink{struct_spv_reflect_descriptor_binding}{Spv\+Reflect\+Descriptor\+Binding}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}pp\+\_\+bindings)
+\item 
+\Hypertarget{spirv__reflect_8h_a75f9ec39945af49749b1977809b2908b}\label{spirv__reflect_8h_a75f9ec39945af49749b1977809b2908b} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Enumerate\+Descriptor\+Sets} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t \texorpdfstring{$\ast$}{*}p\+\_\+count, \mbox{\hyperlink{struct_spv_reflect_descriptor_set}{Spv\+Reflect\+Descriptor\+Set}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}pp\+\_\+sets)
+\item 
+\Hypertarget{spirv__reflect_8h_a38b6ef178532c3ae3601da82357a6400}\label{spirv__reflect_8h_a38b6ef178532c3ae3601da82357a6400} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Enumerate\+Entry\+Point\+Descriptor\+Sets} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point, uint32\+\_\+t \texorpdfstring{$\ast$}{*}p\+\_\+count, \mbox{\hyperlink{struct_spv_reflect_descriptor_set}{Spv\+Reflect\+Descriptor\+Set}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}pp\+\_\+sets)
+\item 
+\Hypertarget{spirv__reflect_8h_a82dfd31d50c1df4dcd74a32b3676344f}\label{spirv__reflect_8h_a82dfd31d50c1df4dcd74a32b3676344f} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Enumerate\+Interface\+Variables} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t \texorpdfstring{$\ast$}{*}p\+\_\+count, \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}pp\+\_\+variables)
+\item 
+\Hypertarget{spirv__reflect_8h_ac0b916c4758ef00e83205c64faca829a}\label{spirv__reflect_8h_ac0b916c4758ef00e83205c64faca829a} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Enumerate\+Entry\+Point\+Interface\+Variables} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point, uint32\+\_\+t \texorpdfstring{$\ast$}{*}p\+\_\+count, \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}pp\+\_\+variables)
+\item 
+\Hypertarget{spirv__reflect_8h_a0f845520b7987750d32f114027d72cb5}\label{spirv__reflect_8h_a0f845520b7987750d32f114027d72cb5} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Enumerate\+Input\+Variables} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t \texorpdfstring{$\ast$}{*}p\+\_\+count, \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}pp\+\_\+variables)
+\item 
+\Hypertarget{spirv__reflect_8h_a607123de87ea17c0d028281d94b43659}\label{spirv__reflect_8h_a607123de87ea17c0d028281d94b43659} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Enumerate\+Entry\+Point\+Input\+Variables} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point, uint32\+\_\+t \texorpdfstring{$\ast$}{*}p\+\_\+count, \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}pp\+\_\+variables)
+\item 
+\Hypertarget{spirv__reflect_8h_aabbb6c0c68acc4e21a7ce8e5ab24cdda}\label{spirv__reflect_8h_aabbb6c0c68acc4e21a7ce8e5ab24cdda} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Enumerate\+Output\+Variables} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t \texorpdfstring{$\ast$}{*}p\+\_\+count, \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}pp\+\_\+variables)
+\item 
+\Hypertarget{spirv__reflect_8h_a094279e9852c9cd78e9f826ac06ac13b}\label{spirv__reflect_8h_a094279e9852c9cd78e9f826ac06ac13b} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Enumerate\+Entry\+Point\+Output\+Variables} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point, uint32\+\_\+t \texorpdfstring{$\ast$}{*}p\+\_\+count, \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}pp\+\_\+variables)
+\item 
+\Hypertarget{spirv__reflect_8h_a0eb6029d01e656d97966203e787e3007}\label{spirv__reflect_8h_a0eb6029d01e656d97966203e787e3007} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Enumerate\+Push\+Constant\+Blocks} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t \texorpdfstring{$\ast$}{*}p\+\_\+count, \mbox{\hyperlink{struct_spv_reflect_block_variable}{Spv\+Reflect\+Block\+Variable}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}pp\+\_\+blocks)
+\item 
+\Hypertarget{spirv__reflect_8h_ab4825ce8bca65be887e6aed9d420dbcc}\label{spirv__reflect_8h_ab4825ce8bca65be887e6aed9d420dbcc} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Enumerate\+Push\+Constants} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t \texorpdfstring{$\ast$}{*}p\+\_\+count, \mbox{\hyperlink{struct_spv_reflect_block_variable}{Spv\+Reflect\+Block\+Variable}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}pp\+\_\+blocks)
+\item 
+\Hypertarget{spirv__reflect_8h_a8a42450a3e2b8c88a85be4853c8bc219}\label{spirv__reflect_8h_a8a42450a3e2b8c88a85be4853c8bc219} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Enumerate\+Entry\+Point\+Push\+Constant\+Blocks} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point, uint32\+\_\+t \texorpdfstring{$\ast$}{*}p\+\_\+count, \mbox{\hyperlink{struct_spv_reflect_block_variable}{Spv\+Reflect\+Block\+Variable}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}pp\+\_\+blocks)
+\item 
+\Hypertarget{spirv__reflect_8h_ad61efa6d52a097c9d77b4a3390b5e8f9}\label{spirv__reflect_8h_ad61efa6d52a097c9d77b4a3390b5e8f9} 
+const \mbox{\hyperlink{struct_spv_reflect_descriptor_binding}{Spv\+Reflect\+Descriptor\+Binding}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Descriptor\+Binding} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t binding\+\_\+number, uint32\+\_\+t set\+\_\+number, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_a2d67cb3aa702a590f97bbbf4bbdfed72}\label{spirv__reflect_8h_a2d67cb3aa702a590f97bbbf4bbdfed72} 
+const \mbox{\hyperlink{struct_spv_reflect_descriptor_binding}{Spv\+Reflect\+Descriptor\+Binding}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Entry\+Point\+Descriptor\+Binding} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point, uint32\+\_\+t binding\+\_\+number, uint32\+\_\+t set\+\_\+number, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_a45f3f30e2f12ead230ee5492e72e8f0d}\label{spirv__reflect_8h_a45f3f30e2f12ead230ee5492e72e8f0d} 
+const \mbox{\hyperlink{struct_spv_reflect_descriptor_set}{Spv\+Reflect\+Descriptor\+Set}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Descriptor\+Set} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t set\+\_\+number, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_a14f64137acfb3e1246a4e40587cd17c0}\label{spirv__reflect_8h_a14f64137acfb3e1246a4e40587cd17c0} 
+const \mbox{\hyperlink{struct_spv_reflect_descriptor_set}{Spv\+Reflect\+Descriptor\+Set}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Entry\+Point\+Descriptor\+Set} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point, uint32\+\_\+t set\+\_\+number, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_a66fa45f7fdbc89124af6a8efdfa93ab8}\label{spirv__reflect_8h_a66fa45f7fdbc89124af6a8efdfa93ab8} 
+const \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Input\+Variable\+By\+Location} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t location, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_a7c214f98864048fa7e576775558818ba}\label{spirv__reflect_8h_a7c214f98864048fa7e576775558818ba} 
+const \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Input\+Variable} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t location, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_a1f230e5b092cbd5a75a9351f374567e2}\label{spirv__reflect_8h_a1f230e5b092cbd5a75a9351f374567e2} 
+const \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Entry\+Point\+Input\+Variable\+By\+Location} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point, uint32\+\_\+t location, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_a485f13a687b3da234207ad2c964d987a}\label{spirv__reflect_8h_a485f13a687b3da234207ad2c964d987a} 
+const \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Input\+Variable\+By\+Semantic} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}semantic, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_a2d34031555db9044d091630bbe262c3c}\label{spirv__reflect_8h_a2d34031555db9044d091630bbe262c3c} 
+const \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Entry\+Point\+Input\+Variable\+By\+Semantic} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point, const char \texorpdfstring{$\ast$}{*}semantic, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_af46d478d1e3f39d6458e93b1636f275e}\label{spirv__reflect_8h_af46d478d1e3f39d6458e93b1636f275e} 
+const \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Output\+Variable\+By\+Location} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t location, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_ac45b73bc676fb48bf95af9ee79c296de}\label{spirv__reflect_8h_ac45b73bc676fb48bf95af9ee79c296de} 
+const \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Output\+Variable} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t location, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_a4391e0ffc0b13f72f78716bfc5662662}\label{spirv__reflect_8h_a4391e0ffc0b13f72f78716bfc5662662} 
+const \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Entry\+Point\+Output\+Variable\+By\+Location} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point, uint32\+\_\+t location, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_ad6ae720d1ffb15ee10c917e4fed10362}\label{spirv__reflect_8h_ad6ae720d1ffb15ee10c917e4fed10362} 
+const \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Output\+Variable\+By\+Semantic} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}semantic, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_a9349b67464e1a7056fdaacc978cd787d}\label{spirv__reflect_8h_a9349b67464e1a7056fdaacc978cd787d} 
+const \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Entry\+Point\+Output\+Variable\+By\+Semantic} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point, const char \texorpdfstring{$\ast$}{*}semantic, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_a1233e43adcc16bf8a07f837c835f4b8e}\label{spirv__reflect_8h_a1233e43adcc16bf8a07f837c835f4b8e} 
+const \mbox{\hyperlink{struct_spv_reflect_block_variable}{Spv\+Reflect\+Block\+Variable}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Push\+Constant\+Block} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t index, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_ac2654ab9741926ba664fea51fb3a79b6}\label{spirv__reflect_8h_ac2654ab9741926ba664fea51fb3a79b6} 
+const \mbox{\hyperlink{struct_spv_reflect_block_variable}{Spv\+Reflect\+Block\+Variable}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Push\+Constant} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, uint32\+\_\+t index, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_ac511ac5dbdd68601bbd390b99033b4e2}\label{spirv__reflect_8h_ac511ac5dbdd68601bbd390b99033b4e2} 
+const \mbox{\hyperlink{struct_spv_reflect_block_variable}{Spv\+Reflect\+Block\+Variable}} \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Get\+Entry\+Point\+Push\+Constant\+Block} (const \mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const char \texorpdfstring{$\ast$}{*}entry\+\_\+point, Spv\+Reflect\+Result \texorpdfstring{$\ast$}{*}p\+\_\+result)
+\item 
+\Hypertarget{spirv__reflect_8h_ae8dad3dc308d301da22ba8dae291c6c6}\label{spirv__reflect_8h_ae8dad3dc308d301da22ba8dae291c6c6} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Change\+Descriptor\+Binding\+Numbers} (\mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const \mbox{\hyperlink{struct_spv_reflect_descriptor_binding}{Spv\+Reflect\+Descriptor\+Binding}} \texorpdfstring{$\ast$}{*}p\+\_\+binding, uint32\+\_\+t new\+\_\+binding\+\_\+number, uint32\+\_\+t new\+\_\+set\+\_\+number)
+\item 
+\Hypertarget{spirv__reflect_8h_abf1ab182d6a69d4ead895bfe92db8daf}\label{spirv__reflect_8h_abf1ab182d6a69d4ead895bfe92db8daf} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Change\+Descriptor\+Binding\+Number} (\mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const \mbox{\hyperlink{struct_spv_reflect_descriptor_binding}{Spv\+Reflect\+Descriptor\+Binding}} \texorpdfstring{$\ast$}{*}p\+\_\+descriptor\+\_\+binding, uint32\+\_\+t new\+\_\+binding\+\_\+number, uint32\+\_\+t optional\+\_\+new\+\_\+set\+\_\+number)
+\item 
+\Hypertarget{spirv__reflect_8h_ae2bf0a6ec06830c303c61943a9e8118c}\label{spirv__reflect_8h_ae2bf0a6ec06830c303c61943a9e8118c} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Change\+Descriptor\+Set\+Number} (\mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const \mbox{\hyperlink{struct_spv_reflect_descriptor_set}{Spv\+Reflect\+Descriptor\+Set}} \texorpdfstring{$\ast$}{*}p\+\_\+set, uint32\+\_\+t new\+\_\+set\+\_\+number)
+\item 
+\Hypertarget{spirv__reflect_8h_abe7d0eee89825d4e6e9c9f7138a5b471}\label{spirv__reflect_8h_abe7d0eee89825d4e6e9c9f7138a5b471} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Change\+Input\+Variable\+Location} (\mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*}p\+\_\+input\+\_\+variable, uint32\+\_\+t new\+\_\+location)
+\item 
+\Hypertarget{spirv__reflect_8h_a305040a9f1e5ce1f2c16715ebd42374e}\label{spirv__reflect_8h_a305040a9f1e5ce1f2c16715ebd42374e} 
+Spv\+Reflect\+Result {\bfseries spv\+Reflect\+Change\+Output\+Variable\+Location} (\mbox{\hyperlink{struct_spv_reflect_shader_module}{Spv\+Reflect\+Shader\+Module}} \texorpdfstring{$\ast$}{*}p\+\_\+module, const \mbox{\hyperlink{struct_spv_reflect_interface_variable}{Spv\+Reflect\+Interface\+Variable}} \texorpdfstring{$\ast$}{*}p\+\_\+output\+\_\+variable, uint32\+\_\+t new\+\_\+location)
+\item 
+\Hypertarget{spirv__reflect_8h_a1864d65d8e812854c7f07bc4209f2814}\label{spirv__reflect_8h_a1864d65d8e812854c7f07bc4209f2814} 
+const char \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Source\+Language} (Spv\+Source\+Language source\+\_\+lang)
+\item 
+\Hypertarget{spirv__reflect_8h_a4eebb03d3b512cf2fc0aade9fdd200fa}\label{spirv__reflect_8h_a4eebb03d3b512cf2fc0aade9fdd200fa} 
+const char \texorpdfstring{$\ast$}{*} {\bfseries spv\+Reflect\+Block\+Variable\+Type\+Name} (const \mbox{\hyperlink{struct_spv_reflect_block_variable}{Spv\+Reflect\+Block\+Variable}} \texorpdfstring{$\ast$}{*}p\+\_\+var)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Enumeration Type Documentation}
+\Hypertarget{spirv__reflect_8h_a4516b578034324fb304eb91d7d15ea6f}\label{spirv__reflect_8h_a4516b578034324fb304eb91d7d15ea6f} 
+\index{spirv\_reflect.h@{spirv\_reflect.h}!SpvReflectModuleFlagBits@{SpvReflectModuleFlagBits}}
+\index{SpvReflectModuleFlagBits@{SpvReflectModuleFlagBits}!spirv\_reflect.h@{spirv\_reflect.h}}
+\doxysubsubsection{\texorpdfstring{SpvReflectModuleFlagBits}{SpvReflectModuleFlagBits}}
+{\footnotesize\ttfamily enum \mbox{\hyperlink{spirv__reflect_8h_a4516b578034324fb304eb91d7d15ea6f}{Spv\+Reflect\+Module\+Flag\+Bits}}}
+
+SPV\+\_\+\+REFLECT\+\_\+\+MODULE\+\_\+\+FLAG\+\_\+\+NO\+\_\+\+COPY -\/ Disables copying of SPIR-\/V code when a SPIRV-\/\+Reflect shader module is created. It is the responsibility of the calling program to ensure that the pointer remains valid and the memory it\textquotesingle{}s pointing to is not freed while SPIRV-\/\+Reflect operations are taking place. Freeing the backing memory will cause undefined behavior or most likely a crash. This is flag is intended for cases where the memory overhead of storing the copied SPIR-\/V is undesirable. 

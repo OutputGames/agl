@@ -2,10 +2,11 @@
 #define AGL_HPP
 
 #include <functional>
+#include <map>
+#include <optional>
 
 #include "re.hpp"
 
-using namespace std;
 
 enum aiTextureType : int;
 struct aiMaterial;
@@ -13,19 +14,20 @@ struct aiMesh;
 
 struct agl_details
 {
-	string applicationName;
-	string engineName;
+	std::string applicationName;
+	std::string engineName;
 	u32 applicationVersion;
 	u32 engineVersion;
 
 	int Width, Height;
 };
 
-struct agl {
-    static void agl_init(agl_details* details);
+struct AURORA_API agl
+{
+	static void agl_init(agl_details* details);
 	static void complete_init();
 #ifdef GRAPHICS_VULKAN
-    inline static bool validationLayersEnabled = true;
+	inline static bool validationLayersEnabled = true;
 #endif
 
 	// Vulkan variables
@@ -45,22 +47,22 @@ struct agl {
 	struct SwapChainSupportDetails
 	{
 		VkSurfaceCapabilitiesKHR capabilities;
-		vector<VkSurfaceFormatKHR> formats;
-		vector<VkPresentModeKHR> presentModes;
+		std::vector<VkSurfaceFormatKHR> formats;
+		std::vector<VkPresentModeKHR> presentModes;
 	};
 
 	static bool CheckValidationLayerSupport();
-	static vector<cc*> GetRequiredExtensions();
+	static std::vector<const char*> GetRequiredExtensions();
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-		VkDebugUtilsMessageTypeFlagsEXT messageType,
-		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData);
+	                                                    VkDebugUtilsMessageTypeFlagsEXT messageType,
+	                                                    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+	                                                    void* pUserData);
 
 	static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
-	inline static const vector<cc*> validationLayers{
-	"VK_LAYER_KHRONOS_validation"
+	inline static const std::vector<const char*> validationLayers{
+		"VK_LAYER_KHRONOS_validation"
 	};
 
 	inline static const std::vector<const char*> deviceExtensions = {
@@ -68,15 +70,15 @@ struct agl {
 	};
 
 	inline static VkInstance instance = VK_NULL_HANDLE;
-    inline static VkDebugUtilsMessengerEXT DebugMessenger = VK_NULL_HANDLE;
-    inline static VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    inline static VkDevice device= VK_NULL_HANDLE;
-    inline static VkQueue graphicsQueue= VK_NULL_HANDLE;
-    inline static VkSurfaceKHR surface= VK_NULL_HANDLE;
-    inline static VkQueue presentQueue= VK_NULL_HANDLE;
-	inline static vector<VkSemaphore> imageAvailableSemaphores;
-	inline static vector<VkSemaphore> renderFinishedSemaphores;
-	inline static vector<VkFence> inFlightFences;
+	inline static VkDebugUtilsMessengerEXT DebugMessenger = VK_NULL_HANDLE;
+	inline static VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+	inline static VkDevice device = VK_NULL_HANDLE;
+	inline static VkQueue graphicsQueue = VK_NULL_HANDLE;
+	inline static VkSurfaceKHR surface = VK_NULL_HANDLE;
+	inline static VkQueue presentQueue = VK_NULL_HANDLE;
+	inline static std::vector<VkSemaphore> imageAvailableSemaphores;
+	inline static std::vector<VkSemaphore> renderFinishedSemaphores;
+	inline static std::vector<VkFence> inFlightFences;
 	inline static u32 currentFrame = 0;
 	inline static u32 currentImage;
 
@@ -90,23 +92,26 @@ struct agl {
 	struct aglTexture;
 	struct aglCommandBuffer;
 	struct aglFramebuffer;
+	struct aglSwapchain;
 
 	struct SurfaceDetails
 	{
-
 		aglCommandBuffer* commandBuffer;
 		aglFramebuffer* framebuffer;
+		aglSwapchain* swapchain;
 		u32 GetNextImageIndex();
 	};
 
 	inline static SurfaceDetails* baseSurface = nullptr;
 
 	static void CreateInstance();
-	static void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+	static void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+	                         VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 	static void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-	static void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-	static void CopyBufferToImage(VkBuffer buffer, VkImage image, u32 width, u32 height);
-	static VkFormat FindSupportedFormat(const vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+	static void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, int layerCount);
+	static void CopyBufferToImage(VkBuffer buffer, VkImage image, u32 width, u32 height, u32 regionCount, VkBufferImageCopy* regions);
+	static VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+	                                    VkFormatFeatureFlags features);
 	static VkFormat FindDepthFormat();
 	static bool HasStencilComponent(VkFormat format);
 	static void PresentFrame(u32 imageIndex);
@@ -115,7 +120,7 @@ struct agl {
 	static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	static void SetupDebugMessenger();
 	static void PickPhysicalDevice();
-	static bool IsDeviceSuitable(const VkPhysicalDevice device);
+	static bool IsDeviceSuitable(VkPhysicalDevice device);
 	static bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
 	static QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
 	static void CreateLogicalDevice();
@@ -129,8 +134,8 @@ struct agl {
 	static void FinishRecordingCommandBuffer(u32 imageIndex);
 	static void DrawFrame();
 
-	template<typename T>
-	static inline void DestroyVulkanObject(function<void(VkDevice, T, const VkAllocationCallbacks*)> func, T object)
+	template <typename T>
+	static void DestroyVulkanObject(std::function<void(VkDevice, T, const VkAllocationCallbacks*)> func, T object)
 	{
 		func(device, object, nullptr);
 	}
@@ -148,30 +153,41 @@ struct agl {
 	{
 		VkShaderModule module;
 
-		aglShaderLevel(string code, aglShaderType type, aglShader* parent);
+		aglShaderLevel(std::string code, aglShaderType type, aglShader* parent);
 
 		VkPipelineShaderStageCreateInfo stageInfo;
 
 		void Destroy();
 
-	
+
 		friend aglShader;
 		aglShader* parent;
 	};
 
 	enum aglDescriptorType
 	{
-		DESCRIPTOR_TYPE_SAMPLER = 0,        // = VK_DESCRIPTOR_TYPE_SAMPLER
-		DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER = 1,        // = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
-		DESCRIPTOR_TYPE_SAMPLED_IMAGE = 2,        // = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
-		DESCRIPTOR_TYPE_STORAGE_IMAGE = 3,        // = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
-		DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER = 4,        // = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER
-		DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER = 5,        // = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
-		DESCRIPTOR_TYPE_UNIFORM_BUFFER = 6,        // = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-		DESCRIPTOR_TYPE_STORAGE_BUFFER = 7,        // = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-		DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 8,        // = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
-		DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 9,        // = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC
-		DESCRIPTOR_TYPE_INPUT_ATTACHMENT = 10,        // = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT
+		DESCRIPTOR_TYPE_SAMPLER = 0,
+		// = VK_DESCRIPTOR_TYPE_SAMPLER
+		DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER = 1,
+		// = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+		DESCRIPTOR_TYPE_SAMPLED_IMAGE = 2,
+		// = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
+		DESCRIPTOR_TYPE_STORAGE_IMAGE = 3,
+		// = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
+		DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER = 4,
+		// = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER
+		DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER = 5,
+		// = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
+		DESCRIPTOR_TYPE_UNIFORM_BUFFER = 6,
+		// = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+		DESCRIPTOR_TYPE_STORAGE_BUFFER = 7,
+		// = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+		DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 8,
+		// = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
+		DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 9,
+		// = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC
+		DESCRIPTOR_TYPE_INPUT_ATTACHMENT = 10,
+		// = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT
 		DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR = 1000150000 // = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
 	};
 
@@ -180,7 +196,7 @@ struct agl {
 		u32 binding;
 		u32 set;
 
-		string name;
+		std::string name;
 
 		u32 count;
 
@@ -195,7 +211,7 @@ struct agl {
 	struct aglCommandBuffer
 	{
 		VkCommandPool commandPool;
-		vector<VkCommandBuffer> commandBuffers;
+		std::vector<VkCommandBuffer> commandBuffers;
 		VkCommandBuffer GetCommandBuffer(u32 currentImage) { return commandBuffers[currentImage]; }
 
 
@@ -210,40 +226,88 @@ struct agl {
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands(VkCommandBuffer vkCommandBuffer);
 
-	
 
 		void CreateCommandPool();
 		void CreateCommandBuffers();
+	};
+
+	struct aglMesh;
+	struct aglRenderPass;
+
+
+	struct aglRenderQueueEntry
+	{
+		agl::aglMesh* mesh;
+		agl::aglShader* shader;
+	};
+
+	struct aglRenderQueue
+	{
+	private:
+		std::vector<aglRenderQueueEntry> queueEntries;
+
+		friend aglRenderPass;
+
+		aglRenderPass* pass;
+
+	public:
+
+		aglRenderQueue(aglRenderPass* pass);
+
+		void Push();
+
+		void AttachQueueEntry(aglRenderQueueEntry entry)
+		{
+			queueEntries.push_back(entry);
+		}
+	};
+
+	struct aglRenderPassSettings
+	{
+		VkImageLayout colorAttachmentLayout;
 	};
 
 	struct aglRenderPass
 	{
 		VkRenderPass renderPass;
 
-		aglRenderPass(aglFramebuffer* framebuffer);
+		aglRenderPass(aglFramebuffer* framebuffer, aglRenderPassSettings settings);
 
 		void AttachToCommandBuffer(aglCommandBuffer* buffer);
 
 		void Begin(u32 imageIndex);
 
-	
+		void PushRenderQueue();
+
 
 		friend aglFramebuffer;
 
-		void CreateRenderPass();
+		void CreateRenderPass(aglRenderPassSettings settings);
 
 		aglFramebuffer* framebuffer;
 		aglCommandBuffer* commandBuffer;
+		aglRenderQueue* renderQueue;
+	};
+
+	struct aglSwapchain
+	{
+		VkSwapchainKHR swapChain;
+		aglFramebuffer* fbo;
+
+		aglSwapchain();
+
+		void CreateSwapChain();
+		void Destroy();
+		void Recreate();
 	};
 
 	struct aglFramebuffer
 	{
-		VkSwapchainKHR swapChain;
-		vector<VkImage> swapChainImages;
-		vector<VkImageView> swapChainImageViews;
-		VkFormat swapChainImageFormat;
-		VkExtent2D swapChainExtent;
-		vector<VkFramebuffer> swapChainFramebuffers;
+		std::vector<VkImage> images;
+		std::vector<VkImageView> imageViews;
+		VkFormat imageFormat;
+		VkExtent2D extent;
+		std::vector<VkFramebuffer> framebuffers;
 		VkImage depthImage;
 		VkDeviceMemory depthImageMemory;
 		VkImageView depthImageView;
@@ -254,7 +318,7 @@ struct agl {
 
 		void Destroy();
 
-		float GetAspect() { return swapChainExtent.width / (float)swapChainExtent.height; }
+		float GetAspect() { return extent.width / static_cast<float>(extent.height); }
 
 		void Recreate();
 
@@ -269,9 +333,7 @@ struct agl {
 
 		bool Resized = false;
 
-	
 
-		void CreateSwapChain();
 		void CreateImageViews();
 		void CreateDepthResources();
 
@@ -282,7 +344,7 @@ struct agl {
 	struct aglUniformBuffer;
 	struct PostProcessingSettings;
 
-	struct aglShader
+	struct AURORA_API aglShader
 	{
 		aglShaderLevel* vertModule;
 		aglShaderLevel* fragModule;
@@ -295,12 +357,13 @@ struct agl {
 
 		struct aglShaderSettings
 		{
-			string vertexPath;
-			string fragmentPath;
+			std::string vertexPath;
+			std::string fragmentPath;
 
 			VkCullModeFlags cullFlags = VK_CULL_MODE_BACK_BIT;
 			VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 			VkCompareOp depthCompare = VK_COMPARE_OP_LESS;
+			aglRenderPass* renderPass=baseSurface->framebuffer->renderPass;
 		};
 
 		aglShaderSettings* settings;
@@ -308,61 +371,47 @@ struct agl {
 
 		aglShader(aglShaderSettings* settings);
 
-	public:
+		static std::string CompileGLSLToSpirV(std::string path);
 
-		u32 GetBindingByName(string n);
+	public:
+		u32 GetBindingByName(std::string n);
 
 		void Destroy();
 
 
-		vector<VkDescriptorPoolSize> poolSizes;
-		VkWriteDescriptorSet* CreateDescriptorSetWrite(int frame, int binding)
-		{
-			VkWriteDescriptorSet* write = new VkWriteDescriptorSet();
-			write->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write->dstBinding = binding;
-			write->dstArrayElement = 0;
-			write->descriptorCount = 1;
-			return write;
-		}
+		std::vector<VkDescriptorPoolSize> poolSizes;
+
+		VkWriteDescriptorSet* CreateDescriptorSetWrite(int frame, int binding);
+
 		void BindGraphicsPipeline(VkCommandBuffer commandBuffer);
-		void BindDescriptor(VkCommandBuffer commandBuffer, u32 currentImage);
 		VkPipelineLayout GetPipelineLayout();
-		VkDescriptorSetLayout GetDescriptorSetLayout() { return descriptorSetLayout; }
-		VkDescriptorPool GetDescriptorPool() { return descriptorPool; }
-		void AttachDescriptorSetLayout(VkDescriptorSetLayoutBinding binding) { bindings.push_back(binding); }
-		void AttachDescriptorPool(VkDescriptorPoolSize pool) { poolSizes.push_back(pool); }
-		void AttachDescriptorWrite(VkWriteDescriptorSet* write, int frame, int binding)
-		{
-			descriptorWrites[frame][binding] = (*write);
-		}
-		void AttachDescriptorWrites(vector<VkWriteDescriptorSet*> writes, int frame)
-		{
-			int ctr = 0;
-			for (auto write : writes)
-			{
-				AttachDescriptorWrite(write, frame, ctr);
-				ctr++;
-			}
-		}
+		VkDescriptorSetLayout GetDescriptorSetLayout();
+		VkDescriptorPool GetDescriptorPool();
+		void AttachDescriptorSetLayout(VkDescriptorSetLayoutBinding binding);
+		void AttachDescriptorPool(VkDescriptorPoolSize pool);
+
+		void AttachDescriptorWrite(VkWriteDescriptorSet* write, int frame, int binding);
+
+		void AttachDescriptorWrites(std::vector<VkWriteDescriptorSet*> writes, int frame);
+
 		void CreateGraphicsPipeline();
 		void CreateDescriptorSetLayout();
 		void CreateDescriptorPool();
 		void CreateDescriptorSet();
-		vector<VkDescriptorSetLayoutBinding> bindings;
-		vector<VkDescriptorSet> descriptorSets;
-		vector<vector<VkWriteDescriptorSet>> descriptorWrites;
-		vector<VkPipelineShaderStageCreateInfo> shaderStages;
+		std::vector<VkDescriptorSetLayoutBinding> bindings;
+		std::vector<VkDescriptorSet> descriptorSets;
+		std::vector<std::vector<VkWriteDescriptorSet>> descriptorWrites;
+		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 		VkPipelineLayout pipelineLayout;
 		VkDescriptorSetLayout descriptorSetLayout;
 		VkPipeline graphicsPipeline;
 		VkDescriptorPool descriptorPool;
-		vector<aglDescriptorPort* > ports;
+		std::vector<aglDescriptorPort*> ports;
 
 		void AttachTexture(aglTexture* texture, u32 binding = -1);
 	};
 
-	
+
 #endif
 
 	// OpenGL variables
@@ -378,7 +427,7 @@ struct agl {
 	{
 		u32 id=-1;
 		GLenum type;
-		string name;
+		std::string name;
 	};
 
     struct aglShaderBinding_txt : aglShaderBinding
@@ -392,8 +441,8 @@ struct agl {
 
 		struct aglShaderSettings
 		{
-			string vertexPath;
-			string fragmentPath;
+			std::string vertexPath;
+			std::string fragmentPath;
 
 		};
 
@@ -404,7 +453,7 @@ struct agl {
 		void Use();
 
 		void AttachTexture(aglTexture* tex, u32 binding);
-		u32 GetBindingByName(string n);
+		u32 GetBindingByName(std::string n);
 
 		void setBool(const std::string& name, bool value) const;
 
@@ -440,11 +489,11 @@ struct agl {
 
 	private:
 
-		u32 CompileShaderStage(GLenum stage, string code);
+		u32 CompileShaderStage(GLenum stage, std::string code);
 
-		u32 LinkShader(vector<u32> shaders);
+		u32 LinkShader(std::vector<u32> shaders);
 
-		vector<aglShaderBinding*> bindings;
+		std::vector<aglShaderBinding*> bindings;
 
 		aglUniformBuffer<PostProcessingSettings>* ppBuffer=nullptr;
 
@@ -461,9 +510,9 @@ struct agl {
 
 	struct aglVertex
 	{
-		glm::vec3 position;
-		glm::vec3 normal; 
-		glm::vec2 texCoord;
+		vec3 position;
+		vec3 normal;
+		vec2 texCoord;
 
 #ifdef GRAPHICS_VULKAN
 		static VkVertexInputBindingDescription GetBindingDescription()
@@ -477,9 +526,9 @@ struct agl {
 			return bindingDescription;
 		}
 
-		static array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
+		static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
 		{
-			array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
+			std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
 			attributeDescriptions[0].binding = 0;
 			attributeDescriptions[0].location = 0;
@@ -503,22 +552,34 @@ struct agl {
 #ifdef GRAPHICS_OPENGL
 
 #endif
-
 	};
 
 	struct aglTextureRef
 	{
-		string path;
+		std::string path;
 	};
 
-	struct aglTexture
+	struct aglTextureCreationInfo
 	{
-		aglTexture(string path);
-		aglTexture(aglTextureRef ref) : aglTexture(ref.path) {};
+		int width, height, channels;
+		bool isCubemap;
+	};
+
+	struct AURORA_API aglTexture
+	{
+		aglTexture(std::string path);
+		aglTexture(aglShader* shader, aglTextureCreationInfo info);
+
+		aglTexture(aglTextureRef ref) : aglTexture(ref.path)
+		{
+		};
 
 #ifdef GRAPHICS_VULKAN
-		static VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice device);
-		static void CreateVulkanImage(u32 width, u32 height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory, VkDevice device, VkPhysicalDevice physicalDevice);
+		static VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
+		                                   bool IsCubemap=false);
+		static void CreateVulkanImage(u32 width, u32 height, VkFormat format, VkImageTiling tiling,
+		                              VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
+		                              VkDeviceMemory& imageMemory, bool IsCubemap=false);
 		void CreateTextureSampler();
 
 		VkImage textureImage;
@@ -534,12 +595,10 @@ struct agl {
 
 		int width, height, channels;
 
-		string path;
+		std::string path;
 
-	
 
 		friend aglShader;
-
 	};
 
 	struct aglMaterial
@@ -550,13 +609,21 @@ struct agl {
 			NORMAL
 		};
 
-		map<TextureType, vector<aglTextureRef>> textures;
+		std::map<TextureType, std::vector<aglTextureRef>> textures;
+
+		aglShader* shader=nullptr;
+	};
+
+	struct aglMeshCreationData
+	{
+		std::vector<aglVertex> vertices;
+		std::vector<unsigned> indices;
 	};
 
 	struct aglMesh
 	{
-		vector<aglVertex> vertices;
-		vector<unsigned> indices;
+		std::vector<aglVertex> vertices;
+		std::vector<unsigned> indices;
 
 #ifdef GRAPHICS_VULKAN
 		VkBuffer vertexBuffer;
@@ -572,11 +639,10 @@ struct agl {
 
 #endif
 
-		aglShader* shader;
-
 		u32 materialIndex;
 
 		aglMesh(aiMesh* mesh);
+		aglMesh(aglMeshCreationData data);
 
 #ifdef GRAPHICS_VULKAN
 		void Draw(aglCommandBuffer* commandBuffer, u32 imageIndex);
@@ -584,21 +650,21 @@ struct agl {
 		void Draw();
 #endif
 
-	
 
-		vector<aglTexture> textures;
+		std::vector<aglTexture> textures;
 
 		friend class aglModel;
 
+	private:
+		void Setup();
 	};
 
 	struct aglModel
 	{
+		std::vector<aglMesh*> meshes;
+		std::vector<aglMaterial*> materials;
 
-		vector<aglMesh*> meshes;
-		vector<aglMaterial*> materials;
-
-		aglModel(string path);
+		aglModel(std::string path);
 
 #ifdef GRAPHICS_VULKAN
 		void Draw(aglCommandBuffer* commandBuffer, u32 imageIndex);
@@ -606,19 +672,16 @@ struct agl {
 		void Draw();
 #endif
 
-		void SetShader(aglShader* shader);
 
-	
-
-		vector<aglTextureRef> LoadMaterialTextures(aiMaterial* material, aiTextureType type, string path);
+		std::vector<aglTextureRef> LoadMaterialTextures(aiMaterial* material, aiTextureType type, std::string path);
 	};
 
 	struct aglUniformBufferSettings
 	{
 #ifdef GRAPHICS_VULKAN
-  		VkShaderStageFlags flags;
+		VkShaderStageFlags flags;
 #else
-		string name;
+		std::string name;
 		u32 binding;
 #endif
 	};
@@ -635,7 +698,7 @@ struct agl {
 
 
 #ifdef GRAPHICS_VULKAN
-  			VkDeviceSize bufferSize = sizeof(T);
+			VkDeviceSize bufferSize = sizeof(T);
 
 			uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 			ubMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -643,7 +706,9 @@ struct agl {
 
 			for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 			{
-				CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], ubMemory[i]);
+				CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+				             uniformBuffers[i], ubMemory[i]);
 
 				vkMapMemory(GetDevice(), ubMemory[i], 0, bufferSize, 0, &mappedUbs[i]);
 			}
@@ -666,7 +731,8 @@ struct agl {
 		void Destroy()
 		{
 #ifdef GRAPHICS_VULKAN
-			for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+			for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+			{
 				vkDestroyBuffer(GetDevice(), uniformBuffers[i], nullptr);
 				vkFreeMemory(GetDevice(), ubMemory[i], nullptr);
 			}
@@ -686,7 +752,6 @@ struct agl {
 
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 #endif
-
 		}
 
 		void AttachToShader(aglShader* shader, u32 bindingIdx)
@@ -710,8 +775,7 @@ struct agl {
 
 			for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 			{
-
-				VkDescriptorBufferInfo* bufferInfo = new VkDescriptorBufferInfo;
+				auto bufferInfo = new VkDescriptorBufferInfo;
 				bufferInfo->buffer = GetUniformBuffer(i);
 				bufferInfo->offset = 0;
 				bufferInfo->range = sizeof(T);
@@ -719,11 +783,11 @@ struct agl {
 				VkWriteDescriptorSet* descriptorWrite;
 
 
-				descriptorWrite = shader->CreateDescriptorSetWrite(i,bindingIdx);
+				descriptorWrite = shader->CreateDescriptorSetWrite(i, bindingIdx);
 				descriptorWrite->descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 				descriptorWrite->pBufferInfo = bufferInfo;
 
-				shader->AttachDescriptorWrite(descriptorWrite, i,bindingIdx);
+				shader->AttachDescriptorWrite(descriptorWrite, i, bindingIdx);
 			}
 
 #else
@@ -754,9 +818,9 @@ struct agl {
 		VkBuffer GetUniformBuffer(int frame) { return uniformBuffers[frame]; }
 
 		VkDescriptorSetLayout setLayout;
-		vector<VkBuffer> uniformBuffers;
-		vector<VkDeviceMemory> ubMemory;
-		vector<void*> mappedUbs;
+		std::vector<VkBuffer> uniformBuffers;
+		std::vector<VkDeviceMemory> ubMemory;
+		std::vector<void*> mappedUbs;
 
 		VkDescriptorSetLayoutBinding binding;
 		VkDescriptorPoolSize poolSize;
@@ -766,19 +830,16 @@ struct agl {
 		aglShader* shader;
 
 		aglUniformBufferSettings settings;
-
-
 	};
 
 	inline static struct PostProcessingSettings
 	{
 		alignas(4) float gammaCorrection = 2.2f;
 		alignas(4) float radiancePower = 1;
-	} *postProcessing=nullptr;
+	}* postProcessing = nullptr;
 
 	static void UpdateFrame();
 	static void Destroy();
-
 };
 
 #endif // AGL_HPP

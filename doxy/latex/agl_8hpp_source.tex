@@ -1,0 +1,793 @@
+\doxysection{agl.\+hpp}
+\hypertarget{agl_8hpp_source}{}\label{agl_8hpp_source}\index{include/agl/agl.hpp@{include/agl/agl.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00001}00001\ \textcolor{preprocessor}{\#if\ !defined(AGL\_HPP)}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00002}00002\ \textcolor{preprocessor}{\#define\ AGL\_HPP}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <map>}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <optional>}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00008}00008\ \textcolor{preprocessor}{\#include\ "{}re.hpp"{}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00010}00010\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00011}00011\ \textcolor{keyword}{enum}\ aiTextureType\ :\ int;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00012}00012\ \textcolor{keyword}{struct\ }aiMaterial;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00013}00013\ \textcolor{keyword}{struct\ }aiMesh;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00015}\mbox{\hyperlink{structagl__details}{00015}}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl__details}{agl\_details}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00016}00016\ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00017}00017\ \ \ \ \ std::string\ applicationName;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00018}00018\ \ \ \ \ std::string\ engineName;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00019}00019\ \ \ \ \ u32\ applicationVersion;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00020}00020\ \ \ \ \ u32\ engineVersion;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00022}00022\ \ \ \ \ \textcolor{keywordtype}{int}\ Width,\ Height;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00023}00023\ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00025}\mbox{\hyperlink{structagl}{00025}}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{AURORA\_API}}\ \mbox{\hyperlink{structagl}{agl}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00026}00026\ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00027}00027\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ agl\_init(\mbox{\hyperlink{structagl__details}{agl\_details}}*\ details);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00028}00028\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ complete\_init();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00029}00029\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_VULKAN}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00030}00030\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{validationLayersEnabled}}\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00031}00031\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00033}00033\ \ \ \ \ \textcolor{comment}{//\ Vulkan\ variables}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00035}00035\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_VULKAN}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00036}00036\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{QueueFamilyIndices}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00037}00037\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00038}00038\ \ \ \ \ \ \ \ \ std::optional<uint32\_t>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{graphicsFamily}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00039}00039\ \ \ \ \ \ \ \ \ std::optional<uint32\_t>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{presentFamily}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00041}00041\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{isComplete}}()}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00042}00042\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00043}00043\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{graphicsFamily}}.has\_value()\ \&\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{presentFamily}}.has\_value();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00044}00044\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00045}00045\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00047}00047\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{SwapChainSupportDetails}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00048}00048\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00049}00049\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkSurfaceCapabilitiesKHR}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{capabilities}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00050}00050\ \ \ \ \ \ \ \ \ std::vector<VkSurfaceFormatKHR>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{formats}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00051}00051\ \ \ \ \ \ \ \ \ std::vector<VkPresentModeKHR>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{presentModes}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00052}00052\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00054}00054\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CheckValidationLayerSupport}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00055}00055\ \ \ \ \ \textcolor{keyword}{static}\ std::vector<const\ char*>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetRequiredExtensions}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00057}00057\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VKAPI\_ATTR}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkBool32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VKAPI\_CALL}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DebugCallback}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDebugUtilsMessageSeverityFlagBitsEXT}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{messageSeverity}},}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDebugUtilsMessageTypeFlagsEXT}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{messageType}},}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDebugUtilsMessengerCallbackDataEXT}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{pCallbackData}},}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{pUserData}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00062}00062\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{PopulateDebugMessengerCreateInfo}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDebugUtilsMessengerCreateInfoEXT}}\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{createInfo}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00064}00064\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ std::vector<const\ char*>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{validationLayers}}\{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}VK\_LAYER\_KHRONOS\_validation"{}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00066}00066\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00068}00068\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ std::vector<const\ char*>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{deviceExtensions}}\ =\ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00069}00069\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_KHR\_SWAPCHAIN\_EXTENSION\_NAME}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00070}00070\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00072}00072\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkInstance}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{instance}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_NULL\_HANDLE}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00073}00073\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDebugUtilsMessengerEXT}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DebugMessenger}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_NULL\_HANDLE}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00074}00074\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkPhysicalDevice}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{physicalDevice}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_NULL\_HANDLE}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00075}00075\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDevice}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{device}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_NULL\_HANDLE}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00076}00076\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkQueue}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{graphicsQueue}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_NULL\_HANDLE}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00077}00077\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkSurfaceKHR}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{surface}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_NULL\_HANDLE}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00078}00078\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkQueue}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{presentQueue}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_NULL\_HANDLE}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00079}00079\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ std::vector<VkSemaphore>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{imageAvailableSemaphores}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00080}00080\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ std::vector<VkSemaphore>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{renderFinishedSemaphores}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00081}00081\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ std::vector<VkFence>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{inFlightFences}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00082}00082\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{currentFrame}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00083}00083\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{currentImage}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00086}00086\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDevice}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetDevice}}()}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00087}00087\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{device}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00089}00089\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00091}00091\ \ \ \ \ \textcolor{keyword}{struct\ }aglShader;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00092}00092\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_texture}{aglTexture}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00093}00093\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglCommandBuffer}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00094}00094\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglFramebuffer}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00096}00096\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{SurfaceDetails}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00097}00097\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00098}00098\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglCommandBuffer}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{commandBuffer}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00099}00099\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglFramebuffer}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{framebuffer}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00100}00100\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetNextImageIndex}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00101}00101\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00103}00103\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{SurfaceDetails}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{baseSurface}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00105}00105\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateInstance}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00106}00106\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateBuffer}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDeviceSize}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{size}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkBufferUsageFlags}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{usage}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkMemoryPropertyFlags}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{properties}},}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkBuffer}}\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{buffer}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDeviceMemory}}\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bufferMemory}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00108}00108\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CopyBuffer}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkBuffer}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{srcBuffer}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkBuffer}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{dstBuffer}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDeviceSize}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{size}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00109}00109\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{TransitionImageLayout}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImage}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{image}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkFormat}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{format}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImageLayout}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{oldLayout}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImageLayout}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{newLayout}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00110}00110\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CopyBufferToImage}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkBuffer}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{buffer}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImage}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{image}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ width,\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ height);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00111}00111\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkFormat}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{FindSupportedFormat}}(\textcolor{keyword}{const}\ std::vector<VkFormat>\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{candidates}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImageTiling}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{tiling}},}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkFormatFeatureFlags}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{features}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00113}00113\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkFormat}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{FindDepthFormat}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00114}00114\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{HasStencilComponent}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkFormat}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{format}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00115}00115\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{PresentFrame}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{imageIndex}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00116}00116\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateSyncObjects}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00117}00117\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{FramebufferResizeCallback}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GLFWwindow}}*\ window,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00118}00118\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{uint32\_t}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{FindMemoryType}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{uint32\_t}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{typeFilter}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkMemoryPropertyFlags}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{properties}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00119}00119\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{SetupDebugMessenger}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00120}00120\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{PickPhysicalDevice}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00121}00121\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{IsDeviceSuitable}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkPhysicalDevice}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{device}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00122}00122\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CheckDeviceExtensionSupport}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkPhysicalDevice}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{device}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00123}00123\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{QueueFamilyIndices}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{FindQueueFamilies}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkPhysicalDevice}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{device}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00124}00124\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateLogicalDevice}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00125}00125\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateSurface}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00126}00126\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{SwapChainSupportDetails}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{querySwapChainSupport}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkPhysicalDevice}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{device}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00127}00127\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkSurfaceFormatKHR}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{chooseSwapSurfaceFormat}}(\textcolor{keyword}{const}\ std::vector<VkSurfaceFormatKHR>\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{availableFormats}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00128}00128\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkPresentModeKHR}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{chooseSwapPresentMode}}(\textcolor{keyword}{const}\ std::vector<VkPresentModeKHR>\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{availablePresentModes}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00129}00129\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkExtent2D}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{ChooseSwapExtent}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkSurfaceCapabilitiesKHR}}\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{capabilities}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00130}00130\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00131}00131\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{record\_command\_buffer}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{imageIndex}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00132}00132\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{FinishRecordingCommandBuffer}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{imageIndex}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00133}00133\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DrawFrame}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00135}00135\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00136}00136\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DestroyVulkanObject}}(std::function<\textcolor{keywordtype}{void}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDevice}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{T}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkAllocationCallbacks}}*)>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{func}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{T}}\ \textcolor{keywordtype}{object})}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00137}00137\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00138}00138\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{func}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{device}},\ \textcolor{keywordtype}{object},\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00139}00139\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00141}00141\ \ \ \ \ \textcolor{keyword}{enum}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderType}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00142}00142\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00143}00143\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VERTEX}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_SHADER\_STAGE\_VERTEX\_BIT}},}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00144}00144\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{FRAGMENT}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_SHADER\_STAGE\_FRAGMENT\_BIT}},}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00145}00145\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GEOMETRY}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_SHADER\_STAGE\_GEOMETRY\_BIT}},}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00146}00146\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{COMPUTE}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_SHADER\_STAGE\_COMPUTE\_BIT}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00147}00147\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00148}00148\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00149}00149\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00150}00150\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderLevel}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00151}00151\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00152}00152\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkShaderModule}}\ \textcolor{keyword}{module};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00154}00154\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderLevel}}(std::string\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{code}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderType}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{type}},\ aglShader*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{parent}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00155}00155\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00156}00156\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkPipelineShaderStageCreateInfo}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{stageInfo}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00157}00157\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00158}00158\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ Destroy();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00159}00159\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00161}00161\ \ \ \ \ \ \ \ \ \textcolor{keyword}{friend}\ aglShader;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00162}00162\ \ \ \ \ \ \ \ \ aglShader*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{parent}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00163}00163\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00165}00165\ \ \ \ \ \textcolor{keyword}{enum}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglDescriptorType}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00166}00166\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00167}00167\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DESCRIPTOR\_TYPE\_SAMPLER}}\ =\ 0,}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00168}00168\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ =\ VK\_DESCRIPTOR\_TYPE\_SAMPLER}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00169}00169\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DESCRIPTOR\_TYPE\_COMBINED\_IMAGE\_SAMPLER}}\ =\ 1,}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00170}00170\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ =\ VK\_DESCRIPTOR\_TYPE\_COMBINED\_IMAGE\_SAMPLER}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00171}00171\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DESCRIPTOR\_TYPE\_SAMPLED\_IMAGE}}\ =\ 2,}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00172}00172\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ =\ VK\_DESCRIPTOR\_TYPE\_SAMPLED\_IMAGE}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00173}00173\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DESCRIPTOR\_TYPE\_STORAGE\_IMAGE}}\ =\ 3,}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00174}00174\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ =\ VK\_DESCRIPTOR\_TYPE\_STORAGE\_IMAGE}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00175}00175\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DESCRIPTOR\_TYPE\_UNIFORM\_TEXEL\_BUFFER}}\ =\ 4,}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00176}00176\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ =\ VK\_DESCRIPTOR\_TYPE\_UNIFORM\_TEXEL\_BUFFER}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00177}00177\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DESCRIPTOR\_TYPE\_STORAGE\_TEXEL\_BUFFER}}\ =\ 5,}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00178}00178\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ =\ VK\_DESCRIPTOR\_TYPE\_STORAGE\_TEXEL\_BUFFER}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00179}00179\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DESCRIPTOR\_TYPE\_UNIFORM\_BUFFER}}\ =\ 6,}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00180}00180\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ =\ VK\_DESCRIPTOR\_TYPE\_UNIFORM\_BUFFER}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00181}00181\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DESCRIPTOR\_TYPE\_STORAGE\_BUFFER}}\ =\ 7,}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00182}00182\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ =\ VK\_DESCRIPTOR\_TYPE\_STORAGE\_BUFFER}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00183}00183\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DESCRIPTOR\_TYPE\_UNIFORM\_BUFFER\_DYNAMIC}}\ =\ 8,}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00184}00184\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ =\ VK\_DESCRIPTOR\_TYPE\_UNIFORM\_BUFFER\_DYNAMIC}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00185}00185\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DESCRIPTOR\_TYPE\_STORAGE\_BUFFER\_DYNAMIC}}\ =\ 9,}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00186}00186\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ =\ VK\_DESCRIPTOR\_TYPE\_STORAGE\_BUFFER\_DYNAMIC}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00187}00187\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DESCRIPTOR\_TYPE\_INPUT\_ATTACHMENT}}\ =\ 10,}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00188}00188\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ =\ VK\_DESCRIPTOR\_TYPE\_INPUT\_ATTACHMENT}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00189}00189\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DESCRIPTOR\_TYPE\_ACCELERATION\_STRUCTURE\_KHR}}\ =\ 1000150000\ \textcolor{comment}{//\ =\ VK\_DESCRIPTOR\_TYPE\_ACCELERATION\_STRUCTURE\_KHR}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00190}00190\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00191}00191\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00192}00192\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglDescriptorPort}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00193}00193\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00194}00194\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ binding;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00195}00195\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{set}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00196}00196\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00197}00197\ \ \ \ \ \ \ \ \ std::string\ name;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00199}00199\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{count}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00200}00200\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00201}00201\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglDescriptorType}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{type}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00202}00202\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00204}00204\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglTexturePort}}\ :\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglDescriptorPort}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00205}00205\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00206}00206\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_texture}{aglTexture}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{texture}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00207}00207\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00209}00209\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglCommandBuffer}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00210}00210\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00211}00211\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkCommandPool}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{commandPool}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00212}00212\ \ \ \ \ \ \ \ \ std::vector<VkCommandBuffer>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{commandBuffers}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00213}00213\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkCommandBuffer}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetCommandBuffer}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{currentImage}})\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{commandBuffers}}[\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{currentImage}}];\ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00214}00214\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00215}00215\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00216}00216\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglCommandBuffer}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00217}00217\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00218}00218\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{Begin}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{currentImage}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00219}00219\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00220}00220\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{End}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{currentImage}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00221}00221\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00222}00222\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateMainBuffers}}()\ \{\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateCommandBuffers}}();\ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00223}00223\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00224}00224\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkCommandBuffer}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{BeginSingleTimeCommands}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00225}00225\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{EndSingleTimeCommands}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkCommandBuffer}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vkCommandBuffer}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00226}00226\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00227}00227\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00228}00228\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateCommandPool}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00229}00229\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateCommandBuffers}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00230}00230\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00231}00231\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00232}00232\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglRenderPass}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00233}00233\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00234}00234\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkRenderPass}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{renderPass}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00235}00235\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00236}00236\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglRenderPass}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglFramebuffer}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{framebuffer}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00237}00237\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00238}00238\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{AttachToCommandBuffer}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglCommandBuffer}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{buffer}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00239}00239\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00240}00240\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{Begin}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{imageIndex}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00241}00241\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00242}00242\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00243}00243\ \ \ \ \ \ \ \ \ \textcolor{keyword}{friend}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglFramebuffer}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00245}00245\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateRenderPass}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00246}00246\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00247}00247\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglFramebuffer}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{framebuffer}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00248}00248\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglCommandBuffer}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{commandBuffer}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00249}00249\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00250}00250\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00251}00251\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglFramebuffer}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00252}00252\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00253}00253\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkSwapchainKHR}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{swapChain}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00254}00254\ \ \ \ \ \ \ \ \ std::vector<VkImage>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{swapChainImages}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00255}00255\ \ \ \ \ \ \ \ \ std::vector<VkImageView>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{swapChainImageViews}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00256}00256\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkFormat}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{swapChainImageFormat}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00257}00257\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkExtent2D}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{swapChainExtent}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00258}00258\ \ \ \ \ \ \ \ \ std::vector<VkFramebuffer>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{swapChainFramebuffers}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00259}00259\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImage}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{depthImage}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00260}00260\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDeviceMemory}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{depthImageMemory}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00261}00261\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImageView}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{depthImageView}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00262}00262\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00263}00263\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglFramebuffer}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00264}00264\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00265}00265\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglRenderPass}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetRenderPass}}()\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{renderPass}};\ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00266}00266\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00267}00267\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ Destroy();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00268}00268\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00269}00269\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetAspect}}()\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{swapChainExtent}}.width\ /\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{float}\textcolor{keyword}{>}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{swapChainExtent}}.height);\ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00270}00270\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00271}00271\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{Recreate}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00272}00272\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00273}00273\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{IsResized}}()\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{Resized}};\ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00274}00274\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00275}00275\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateFramebuffers}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00276}00276\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00277}00277\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{Bind}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{imageIndex}})}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00278}00278\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00279}00279\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetRenderPass}}()-\/>Begin(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{imageIndex}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00280}00280\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00281}00281\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00282}00282\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{Resized}}\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00283}00283\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00284}00284\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00285}00285\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateSwapChain}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00286}00286\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateImageViews}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00287}00287\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateDepthResources}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00289}00289\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglRenderPass}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{renderPass}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00290}00290\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00291}00291\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00292}00292\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00293}00293\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglUniformBuffer}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00294}00294\ \ \ \ \ \textcolor{keyword}{struct\ }PostProcessingSettings;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00295}00295\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00296}00296\ \ \ \ \ \textcolor{keyword}{struct\ }aglShader}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00297}00297\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00298}00298\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderLevel}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vertModule}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00299}00299\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderLevel}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{fragModule}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00300}00300\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00301}00301\ \ \ \ \ \ \ \ \ std::string\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vertexCode}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{fragmentCode}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00302}00302\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00303}00303\ \ \ \ \ \ \ \ \ \textcolor{keyword}{friend}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderLevel}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00304}00304\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00305}00305\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ Setup();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00306}00306\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00307}00307\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderSettings}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00308}00308\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00309}00309\ \ \ \ \ \ \ \ \ \ \ \ \ std::string\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vertexPath}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00310}00310\ \ \ \ \ \ \ \ \ \ \ \ \ std::string\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{fragmentPath}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00311}00311\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00312}00312\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkCullModeFlags}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{cullFlags}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_CULL\_MODE\_BACK\_BIT}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00313}00313\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkFrontFace}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{frontFace}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_FRONT\_FACE\_COUNTER\_CLOCKWISE}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00314}00314\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkCompareOp}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{depthCompare}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_COMPARE\_OP\_LESS}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00315}00315\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00316}00316\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00317}00317\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderSettings}}*\ settings;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00318}00318\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglUniformBuffer<PostProcessingSettings>}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{ppBuffer}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00319}00319\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00320}00320\ \ \ \ \ \ \ \ \ aglShader(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderSettings}}*\ settings);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00321}00321\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00322}00322\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00323}00323\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetBindingByName}}(std::string\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{n}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00324}00324\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00325}00325\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ Destroy();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00326}00326\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00327}00327\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00328}00328\ \ \ \ \ \ \ \ \ std::vector<VkDescriptorPoolSize>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{poolSizes}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00329}00329\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00330}00330\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkWriteDescriptorSet}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateDescriptorSetWrite}}(\textcolor{keywordtype}{int}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{frame}},\ \textcolor{keywordtype}{int}\ binding);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00331}00331\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00332}00332\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{BindGraphicsPipeline}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkCommandBuffer}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{commandBuffer}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00333}00333\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{BindDescriptor}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkCommandBuffer}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{commandBuffer}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{currentImage}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00334}00334\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkPipelineLayout}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetPipelineLayout}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00335}00335\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorSetLayout}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetDescriptorSetLayout}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00336}00336\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorPool}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetDescriptorPool}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00337}00337\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{AttachDescriptorSetLayout}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorSetLayoutBinding}}\ binding);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00338}00338\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{AttachDescriptorPool}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorPoolSize}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{pool}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00339}00339\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00340}00340\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{AttachDescriptorWrite}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkWriteDescriptorSet}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{write}},\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{frame}},\ \textcolor{keywordtype}{int}\ binding);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00341}00341\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00342}00342\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{AttachDescriptorWrites}}(std::vector<VkWriteDescriptorSet*>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{writes}},\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{frame}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00343}00343\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00344}00344\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateGraphicsPipeline}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00345}00345\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateDescriptorSetLayout}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00346}00346\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateDescriptorPool}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00347}00347\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateDescriptorSet}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00348}00348\ \ \ \ \ \ \ \ \ std::vector<VkDescriptorSetLayoutBinding>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bindings}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00349}00349\ \ \ \ \ \ \ \ \ std::vector<VkDescriptorSet>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{descriptorSets}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00350}00350\ \ \ \ \ \ \ \ \ std::vector<std::vector<VkWriteDescriptorSet>>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{descriptorWrites}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00351}00351\ \ \ \ \ \ \ \ \ std::vector<VkPipelineShaderStageCreateInfo>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{shaderStages}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00352}00352\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkPipelineLayout}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{pipelineLayout}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00353}00353\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorSetLayout}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{descriptorSetLayout}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00354}00354\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkPipeline}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{graphicsPipeline}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00355}00355\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorPool}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{descriptorPool}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00356}00356\ \ \ \ \ \ \ \ \ std::vector<aglDescriptorPort*>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{ports}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00357}00357\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00358}00358\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{AttachTexture}}(\mbox{\hyperlink{structagl_1_1agl_texture}{aglTexture}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{texture}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ binding\ =\ -\/1);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00359}00359\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00360}00360\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00361}00361\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00362}00362\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00363}00363\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00364}00364\ \ \ \ \ \textcolor{comment}{//\ OpenGL\ variables}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00365}00365\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00366}00366\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_OPENGL}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00367}00367\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00368}00368\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_texture}{aglTexture}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00369}00369\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00370}00370\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglUniformBuffer}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00371}00371\ \ \ \ \ \textcolor{keyword}{struct\ }PostProcessingSettings;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00372}00372\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00373}00373\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderBinding}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00374}00374\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00375}00375\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \textcolor{keywordtype}{id}=-\/1;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00376}00376\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GLenum}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{type}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00377}00377\ \ \ \ \ \ \ \ \ std::string\ name;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00378}00378\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00379}00379\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00380}00380\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderBinding\_txt}}\ :\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderBinding}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00381}00381\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00382}00382\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_texture}{aglTexture}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{texture}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00383}00383\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00384}00384\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00385}00385\ \ \ \ \ \textcolor{keyword}{struct\ }aglShader}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00386}00386\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00387}00387\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{id}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00388}00388\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00389}00389\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderSettings}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00390}00390\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00391}00391\ \ \ \ \ \ \ \ \ \ \ \ \ std::string\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vertexPath}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00392}00392\ \ \ \ \ \ \ \ \ \ \ \ \ std::string\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{fragmentPath}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00393}00393\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00394}00394\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00395}00395\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00396}00396\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderSettings}}*\ settings;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00397}00397\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00398}00398\ \ \ \ \ \ \ \ \ aglShader(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglShaderSettings}}*\ settings);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00399}00399\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00400}00400\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{Use}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00401}00401\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00402}00402\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{AttachTexture}}(\mbox{\hyperlink{structagl_1_1agl_texture}{aglTexture}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{tex}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ binding);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00403}00403\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetBindingByName}}(std::string\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{n}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00404}00404\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00405}00405\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{setBool}}(\textcolor{keyword}{const}\ std::string\&\ name,\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{value}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00406}00406\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00407}00407\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00408}00408\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{setInt}}(\textcolor{keyword}{const}\ std::string\&\ name,\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{value}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00409}00409\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00410}00410\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00411}00411\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{setFloat}}(\textcolor{keyword}{const}\ std::string\&\ name,\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{value}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00412}00412\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00413}00413\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00414}00414\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{setVec2}}(\textcolor{keyword}{const}\ std::string\&\ name,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vec2}}\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{value}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00415}00415\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00416}00416\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{setVec2}}(\textcolor{keyword}{const}\ std::string\&\ name,\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{x}},\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{y}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00417}00417\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00418}00418\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00419}00419\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{setVec3}}(\textcolor{keyword}{const}\ std::string\&\ name,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vec3}}\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{value}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00420}00420\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00421}00421\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{setVec3}}(\textcolor{keyword}{const}\ std::string\&\ name,\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{x}},\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{y}},\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{z}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00422}00422\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00423}00423\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00424}00424\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{setVec4}}(\textcolor{keyword}{const}\ std::string\&\ name,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vec4}}\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{value}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00425}00425\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00426}00426\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{setVec4}}(\textcolor{keyword}{const}\ std::string\&\ name,\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{x}},\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{y}},\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{z}},\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{w}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00427}00427\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00428}00428\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00429}00429\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{setMat2}}(\textcolor{keyword}{const}\ std::string\&\ name,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{mat2}}\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{mat}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00430}00430\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00431}00431\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00432}00432\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{setMat3}}(\textcolor{keyword}{const}\ std::string\&\ name,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{mat3}}\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{mat}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00433}00433\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00434}00434\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00435}00435\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{setMat4}}(\textcolor{keyword}{const}\ std::string\&\ name,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{mat4}}\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{mat}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00436}00436\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00437}00437\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00438}00438\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00439}00439\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CompileShaderStage}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GLenum}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{stage}},\ std::string\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{code}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00440}00440\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00441}00441\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{LinkShader}}(std::vector<u32>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{shaders}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00442}00442\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00443}00443\ \ \ \ \ \ \ \ \ std::vector<aglShaderBinding*>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bindings}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00444}00444\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00445}00445\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglUniformBuffer<PostProcessingSettings>}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{ppBuffer}}=\textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00446}00446\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00447}00447\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00448}00448\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00449}00449\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GLAPIENTRY}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{DebugMessageCallback}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GLenum}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{source}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GLenum}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{type}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GLuint}}\ \textcolor{keywordtype}{id},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GLenum}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{severity}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GLsizei}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{length}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GLchar}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{message}},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{userParam}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00450}00450\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00451}00451\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00452}00452\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00453}00453\ \ \ \ \ \textcolor{comment}{//\ Combined\ variables}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00454}00454\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00455}00455\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GLFWwindow}}*\ window\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00456}00456\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl__details}{agl\_details}}*\ details\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00457}00457\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00458}\mbox{\hyperlink{structagl_1_1agl_vertex}{00458}}\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_vertex}{aglVertex}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00459}00459\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00460}00460\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vec3}}\ position;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00461}00461\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vec3}}\ normal;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00462}00462\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vec2}}\ texCoord;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00463}00463\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00464}00464\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_VULKAN}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00465}00465\ \ \ \ \ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkVertexInputBindingDescription}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetBindingDescription}}()}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00466}00466\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00467}00467\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkVertexInputBindingDescription}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bindingDescription}}\{\};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00468}00468\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00469}00469\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bindingDescription}}.binding\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00470}00470\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bindingDescription}}.stride\ =\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structagl_1_1agl_vertex}{aglVertex}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00471}00471\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bindingDescription}}.inputRate\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_VERTEX\_INPUT\_RATE\_VERTEX}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00472}00472\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00473}00473\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bindingDescription}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00474}00474\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00475}00475\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00476}00476\ \ \ \ \ \ \ \ \ \textcolor{keyword}{static}\ std::array<VkVertexInputAttributeDescription,\ 3>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetAttributeDescriptions}}()}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00477}00477\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00478}00478\ \ \ \ \ \ \ \ \ \ \ \ \ std::array<VkVertexInputAttributeDescription,\ 3>\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}}\{\};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00479}00479\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00480}00480\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}}[0].binding\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00481}00481\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}}[0].location\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00482}00482\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}}[0].format\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_FORMAT\_R32G32B32\_SFLOAT}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00483}00483\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}}[0].offset\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{offsetof}}(\mbox{\hyperlink{structagl_1_1agl_vertex}{aglVertex}},\ position);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00484}00484\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00485}00485\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}}[1].binding\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00486}00486\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}}[1].location\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00487}00487\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}}[1].format\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_FORMAT\_R32G32B32\_SFLOAT}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00488}00488\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}}[1].offset\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{offsetof}}(\mbox{\hyperlink{structagl_1_1agl_vertex}{aglVertex}},\ normal);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00489}00489\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00490}00490\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}}[2].binding\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00491}00491\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}}[2].location\ =\ 2;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00492}00492\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}}[2].format\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_FORMAT\_R32G32\_SFLOAT}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00493}00493\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}}[2].offset\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{offsetof}}(\mbox{\hyperlink{structagl_1_1agl_vertex}{aglVertex}},\ texCoord);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00494}00494\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00495}00495\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{attributeDescriptions}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00496}00496\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00497}00497\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00498}00498\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00499}00499\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_OPENGL}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00500}00500\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00501}00501\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00502}00502\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00503}00503\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00504}\mbox{\hyperlink{structagl_1_1agl_texture_ref}{00504}}\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_texture_ref}{aglTextureRef}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00505}00505\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00506}00506\ \ \ \ \ \ \ \ \ std::string\ path;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00507}00507\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00508}00508\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00509}\mbox{\hyperlink{structagl_1_1agl_texture}{00509}}\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_texture}{aglTexture}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00510}00510\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00511}00511\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_texture}{aglTexture}}(std::string\ path);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00512}00512\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00513}00513\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_texture}{aglTexture}}(\mbox{\hyperlink{structagl_1_1agl_texture_ref}{aglTextureRef}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{ref}})\ :\ \mbox{\hyperlink{structagl_1_1agl_texture}{aglTexture}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{ref}}.path)}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00514}00514\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00515}00515\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00516}00516\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00517}00517\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_VULKAN}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00518}00518\ \ \ \ \ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImageView}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateImageView}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImage}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{image}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkFormat}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{format}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImageAspectFlags}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aspectFlags}},}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00519}00519\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDevice}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{device}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00520}00520\ \ \ \ \ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateVulkanImage}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ width,\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ height,\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkFormat}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{format}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImageTiling}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{tiling}},}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00521}00521\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImageUsageFlags}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{usage}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkMemoryPropertyFlags}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{properties}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImage}}\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{image}},}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00522}00522\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDeviceMemory}}\&\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{imageMemory}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDevice}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{device}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkPhysicalDevice}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{physicalDevice}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00523}00523\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateTextureSampler}}();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00524}00524\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00525}00525\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImage}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{textureImage}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00526}00526\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDeviceMemory}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{textureImageMemory}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00527}00527\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkImageView}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{textureImageView}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00528}00528\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkSampler}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{textureSampler}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00529}00529\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00530}00530\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00531}00531\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_OPENGL}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00532}00532\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{id}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00533}00533\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00534}00534\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00535}00535\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00536}00536\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ height,\ channels;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00537}00537\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00538}00538\ \ \ \ \ \ \ \ \ std::string\ path;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00539}00539\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00540}00540\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00541}00541\ \ \ \ \ \ \ \ \ \textcolor{keyword}{friend}\ aglShader;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00542}00542\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00543}00543\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00544}\mbox{\hyperlink{structagl_1_1agl_material}{00544}}\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_material}{aglMaterial}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00545}00545\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00546}00546\ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum}\ TextureType}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00547}00547\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00548}00548\ \ \ \ \ \ \ \ \ \ \ \ \ ALBEDO\ =\ 0,}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00549}00549\ \ \ \ \ \ \ \ \ \ \ \ \ NORMAL}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00550}00550\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00551}00551\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00552}00552\ \ \ \ \ \ \ \ \ std::map<TextureType,\ std::vector<aglTextureRef>>\ textures;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00553}00553\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00554}00554\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00555}\mbox{\hyperlink{structagl_1_1agl_mesh_creation_data}{00555}}\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_mesh_creation_data}{aglMeshCreationData}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00556}00556\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00557}00557\ \ \ \ \ \ \ \ \ std::vector<aglVertex>\ vertices;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00558}00558\ \ \ \ \ \ \ \ \ std::vector<unsigned>\ indices;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00559}00559\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00560}00560\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00561}\mbox{\hyperlink{structagl_1_1agl_mesh}{00561}}\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_mesh}{aglMesh}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00562}00562\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00563}00563\ \ \ \ \ \ \ \ \ std::vector<aglVertex>\ vertices;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00564}00564\ \ \ \ \ \ \ \ \ std::vector<unsigned>\ indices;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00565}00565\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00566}00566\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_VULKAN}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00567}00567\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkBuffer}}\ vertexBuffer;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00568}00568\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDeviceMemory}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vertexBufferMemory}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00569}00569\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkBuffer}}\ indexBuffer;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00570}00570\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDeviceMemory}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{indexBufferMemory}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00571}00571\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00572}00572\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00573}00573\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00574}00574\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ vertexBuffer=0;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00575}00575\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ indexBuffer=0;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00576}00576\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ vertexArray=0;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00577}00577\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00578}00578\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00579}00579\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00580}00580\ \ \ \ \ \ \ \ \ aglShader*\ shader;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00581}00581\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00582}00582\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ materialIndex;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00583}00583\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00584}00584\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_mesh}{aglMesh}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aiMesh}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{mesh}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00585}00585\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_mesh}{aglMesh}}(\mbox{\hyperlink{structagl_1_1agl_mesh_creation_data}{aglMeshCreationData}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{data}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00586}00586\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00587}00587\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_VULKAN}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00588}00588\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ Draw(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglCommandBuffer}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{commandBuffer}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{imageIndex}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00589}00589\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00590}00590\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ Draw();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00591}00591\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00592}00592\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00593}00593\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00594}00594\ \ \ \ \ \ \ \ \ std::vector<aglTexture>\ textures;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00595}00595\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00596}00596\ \ \ \ \ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{structagl_1_1agl_model}{aglModel}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00597}00597\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00598}00598\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00599}00599\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ Setup();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00600}00600\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00601}00601\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00602}\mbox{\hyperlink{structagl_1_1agl_model}{00602}}\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_model}{aglModel}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00603}00603\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00604}00604\ \ \ \ \ \ \ \ \ std::vector<aglMesh*>\ meshes;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00605}00605\ \ \ \ \ \ \ \ \ std::vector<aglMaterial*>\ materials;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00606}00606\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00607}00607\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_model}{aglModel}}(std::string\ path);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00608}00608\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00609}00609\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_VULKAN}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00610}00610\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ Draw(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglCommandBuffer}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{commandBuffer}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{imageIndex}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00611}00611\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00612}00612\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ Draw();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00613}00613\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00614}00614\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00615}00615\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ SetShader(aglShader*\ shader);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00616}00616\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00617}00617\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00618}00618\ \ \ \ \ \ \ \ \ std::vector<aglTextureRef>\ LoadMaterialTextures(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aiMaterial}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{material}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aiTextureType}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{type}},\ std::string\ path);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00619}00619\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00620}00620\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00621}\mbox{\hyperlink{structagl_1_1agl_uniform_buffer_settings}{00621}}\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer_settings}{aglUniformBufferSettings}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00622}00622\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00623}00623\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_VULKAN}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00624}00624\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkShaderStageFlags}}\ flags;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00625}00625\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00626}00626\ \ \ \ \ \ \ \ \ std::string\ name;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00627}00627\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ binding;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00628}00628\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00629}00629\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00630}00630\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00631}00631\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00632}\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{00632}}\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglUniformBuffer}}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00633}00633\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00634}00634\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{aglUniformBuffer}}(aglShader*\ shader,\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer_settings}{aglUniformBufferSettings}}\ settings)}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00635}00635\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00636}00636\ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>shader\ =\ shader;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00637}00637\ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>settings\ =\ settings;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00638}00638\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00639}00639\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ UB\ creation}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00640}00640\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00641}00641\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00642}00642\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_VULKAN}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00643}00643\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDeviceSize}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bufferSize}}\ =\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{T}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00644}00644\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00645}00645\ \ \ \ \ \ \ \ \ \ \ \ \ uniformBuffers.resize(MAX\_FRAMES\_IN\_FLIGHT);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00646}00646\ \ \ \ \ \ \ \ \ \ \ \ \ ubMemory.resize(MAX\_FRAMES\_IN\_FLIGHT);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00647}00647\ \ \ \ \ \ \ \ \ \ \ \ \ mappedUbs.resize(MAX\_FRAMES\_IN\_FLIGHT);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00648}00648\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00649}00649\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}}\ =\ 0;\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}}\ <\ MAX\_FRAMES\_IN\_FLIGHT;\ ++\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}})}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00650}00650\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00651}00651\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{CreateBuffer}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bufferSize}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_BUFFER\_USAGE\_UNIFORM\_BUFFER\_BIT}},}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00652}00652\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_MEMORY\_PROPERTY\_HOST\_VISIBLE\_BIT}}\ |\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_MEMORY\_PROPERTY\_HOST\_COHERENT\_BIT}},}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00653}00653\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uniformBuffers[\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}}],\ ubMemory[\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}}]);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00654}00654\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00655}00655\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vkMapMemory}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetDevice}}(),\ ubMemory[\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}}],\ 0,\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bufferSize}},\ 0,\ \&mappedUbs[\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}}]);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00656}00656\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00657}00657\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00658}00658\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00659}00659\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (settings.binding\ >=\ 32)}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00660}00660\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00661}00661\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ \textcolor{keyword}{new}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{exception}}(\textcolor{stringliteral}{"{}Invalid\ binding."{}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00662}00662\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00663}00663\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00664}00664\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{glGenBuffers}}(1,\ \&\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{ubo}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00665}00665\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{glBindBuffer}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GL\_UNIFORM\_BUFFER}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{ubo}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00666}00666\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{glBufferData}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GL\_UNIFORM\_BUFFER}},\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{T}}),\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{NULL}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GL\_STATIC\_DRAW}});\ \textcolor{comment}{//\ allocate\ 152\ bytes\ of\ memory}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00667}00667\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{glBindBuffer}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GL\_UNIFORM\_BUFFER}},\ 0);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00668}00668\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00669}00669\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{glBindBufferRange}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GL\_UNIFORM\_BUFFER}},\ settings.binding,\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{ubo}},\ 0,\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{T}}));}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00670}00670\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00671}00671\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00672}00672\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00673}00673\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ Destroy()}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00674}00674\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00675}00675\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_VULKAN}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00676}00676\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}}\ =\ 0;\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}}\ <\ MAX\_FRAMES\_IN\_FLIGHT;\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}}++)}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00677}00677\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00678}00678\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vkDestroyBuffer}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetDevice}}(),\ uniformBuffers[\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}}],\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00679}00679\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{vkFreeMemory}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GetDevice}}(),\ ubMemory[\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}}],\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00680}00680\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00681}00681\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00682}00682\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00683}00683\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00684}00684\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00685}00685\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00686}00686\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ Update(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{T}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{data}})}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00687}00687\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00688}00688\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_VULKAN}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00689}00689\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{memcpy}}(mappedUbs[\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{currentFrame}}],\ \&\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{data}},\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{data}}));}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00690}00690\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00691}00691\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{glBindBuffer}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GL\_UNIFORM\_BUFFER}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{ubo}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00692}00692\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00693}00693\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{glBufferSubData}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GL\_UNIFORM\_BUFFER}},\ 0,\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{T}}),\ \&\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{data}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00694}00694\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00695}00695\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{glBindBuffer}}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{GL\_UNIFORM\_BUFFER}},\ 0);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00696}00696\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00697}00697\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00698}00698\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00699}00699\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ AttachToShader(aglShader*\ shader,\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bindingIdx}})}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00700}00700\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00701}00701\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_VULKAN}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00702}00702\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorSetLayoutBinding}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{uboLayoutBinding}}\{\};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00703}00703\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{uboLayoutBinding}}.binding\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bindingIdx}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00704}00704\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{uboLayoutBinding}}.descriptorType\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_DESCRIPTOR\_TYPE\_UNIFORM\_BUFFER}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00705}00705\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{uboLayoutBinding}}.descriptorCount\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00706}00706\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{uboLayoutBinding}}.stageFlags\ =\ settings.flags;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00707}00707\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{uboLayoutBinding}}.pImmutableSamplers\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00708}00708\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00709}00709\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorPoolSize}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{uboPoolSize}}\{\};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00710}00710\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00711}00711\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{uboPoolSize}}.type\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_DESCRIPTOR\_TYPE\_UNIFORM\_BUFFER}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00712}00712\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{uboPoolSize}}.descriptorCount\ =\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{u32}}\textcolor{keyword}{>}(MAX\_FRAMES\_IN\_FLIGHT);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00713}00713\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00714}00714\ \ \ \ \ \ \ \ \ \ \ \ \ shader-\/>AttachDescriptorPool(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{uboPoolSize}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00715}00715\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00716}00716\ \ \ \ \ \ \ \ \ \ \ \ \ CreateBinding(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{uboLayoutBinding}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00717}00717\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00718}00718\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}}\ =\ 0;\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}}\ <\ MAX\_FRAMES\_IN\_FLIGHT;\ ++\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}})}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00719}00719\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00720}00720\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bufferInfo}}\ =\ \textcolor{keyword}{new}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorBufferInfo}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00721}00721\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bufferInfo}}-\/>buffer\ =\ GetUniformBuffer(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00722}00722\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bufferInfo}}-\/>offset\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00723}00723\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bufferInfo}}-\/>range\ =\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{T}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00724}00724\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00725}00725\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkWriteDescriptorSet}}*\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{descriptorWrite}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00726}00726\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00727}00727\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00728}00728\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{descriptorWrite}}\ =\ shader-\/>CreateDescriptorSetWrite(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bindingIdx}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00729}00729\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{descriptorWrite}}-\/>descriptorType\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VK\_DESCRIPTOR\_TYPE\_UNIFORM\_BUFFER}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00730}00730\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{descriptorWrite}}-\/>pBufferInfo\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bufferInfo}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00731}00731\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00732}00732\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ shader-\/>AttachDescriptorWrite(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{descriptorWrite}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{i}},\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bindingIdx}});}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00733}00733\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00734}00734\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00735}00735\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00736}00736\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{index}}\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{glGetUniformBlockIndex}}(shader-\/>id,\ settings.name.c\_str());}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00737}00737\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{glUniformBlockBinding}}(shader-\/>id,\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{index}},\ settings.binding);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00738}00738\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00739}00739\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00740}00740\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00741}00741\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00742}00742\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00743}00743\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_OPENGL}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00744}00744\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{ubo}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00745}00745\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00746}00746\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00747}00747\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00748}00748\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ CreateBinding(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorSetLayoutBinding}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bind}})}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00749}00749\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00750}00750\ \ \ \ \ \ \ \ \ \ \ \ \ binding\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{bind}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00751}00751\ \ \ \ \ \ \ \ \ \ \ \ \ shader-\/>AttachDescriptorSetLayout(binding);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00752}00752\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00753}00753\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00754}00754\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ CreatePoolSize(\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorPoolSize}}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{poolSz}})}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00755}00755\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00756}00756\ \ \ \ \ \ \ \ \ \ \ \ \ poolSize\ =\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{poolSz}};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00757}00757\ \ \ \ \ \ \ \ \ \ \ \ \ shader-\/>AttachDescriptorPool(poolSize);}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00758}00758\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00759}00759\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00760}00760\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkBuffer}}\ GetUniformBuffer(\textcolor{keywordtype}{int}\ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{frame}})\ \{\ \textcolor{keywordflow}{return}\ uniformBuffers[\mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{frame}}];\ \}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00761}00761\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00762}00762\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorSetLayout}}\ setLayout;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00763}00763\ \ \ \ \ \ \ \ \ std::vector<VkBuffer>\ uniformBuffers;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00764}00764\ \ \ \ \ \ \ \ \ std::vector<VkDeviceMemory>\ ubMemory;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00765}00765\ \ \ \ \ \ \ \ \ std::vector<void*>\ mappedUbs;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00766}00766\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00767}00767\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorSetLayoutBinding}}\ binding;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00768}00768\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer}{VkDescriptorPoolSize}}\ poolSize;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00769}00769\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00770}00770\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00771}00771\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00772}00772\ \ \ \ \ \ \ \ \ aglShader*\ shader;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00773}00773\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00774}00774\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structagl_1_1agl_uniform_buffer_settings}{aglUniformBufferSettings}}\ settings;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00775}00775\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00776}00776\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00777}00777\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{struct\ }PostProcessingSettings}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00778}00778\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00779}00779\ \ \ \ \ \ \ \ \ \textcolor{keyword}{alignas}(4)\ \textcolor{keywordtype}{float}\ gammaCorrection\ =\ 2.2f;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00780}00780\ \ \ \ \ \ \ \ \ \textcolor{keyword}{alignas}(4)\ \textcolor{keywordtype}{float}\ radiancePower\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00781}00781\ \ \ \ \ \}*\ postProcessing\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00782}00782\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00783}00783\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ UpdateFrame();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00784}00784\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ Destroy();}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00785}00785\ \};}
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00786}00786\ }
+\DoxyCodeLine{\Hypertarget{agl_8hpp_source_l00787}00787\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ AGL\_HPP}}
+
+\end{DoxyCode}

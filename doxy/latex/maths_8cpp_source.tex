@@ -1,0 +1,14 @@
+\doxysection{maths.\+cpp}
+\hypertarget{maths_8cpp_source}{}\label{maths_8cpp_source}\index{include/agl/maths.cpp@{include/agl/maths.cpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{maths_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}maths.hpp"{}}}
+\DoxyCodeLine{\Hypertarget{maths_8cpp_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{maths_8cpp_source_l00003}00003\ \textcolor{preprocessor}{\#ifdef\ GRAPHICS\_VULKAN}}
+\DoxyCodeLine{\Hypertarget{maths_8cpp_source_l00004}00004\ glm::vec2\ aglMath::ConvertExtents(VkExtent2D\ extent)}
+\DoxyCodeLine{\Hypertarget{maths_8cpp_source_l00005}00005\ \{}
+\DoxyCodeLine{\Hypertarget{maths_8cpp_source_l00006}00006\ \ \ \ \ \textcolor{keywordflow}{return}\ glm::vec2(extent.width,\ extent.height);}
+\DoxyCodeLine{\Hypertarget{maths_8cpp_source_l00007}00007\ \}}
+\DoxyCodeLine{\Hypertarget{maths_8cpp_source_l00008}00008\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

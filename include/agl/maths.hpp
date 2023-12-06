@@ -3,7 +3,7 @@
 
 	#include "re.hpp"
 
-struct aglMath {
+struct AURORA_API aglMath {
 
 #ifdef GRAPHICS_VULKAN
 	static glm::vec2 ConvertExtents(VkExtent2D extent);
