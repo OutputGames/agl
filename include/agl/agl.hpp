@@ -108,15 +108,16 @@ struct AURORA_API agl
 	static void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
 	                         VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 	static void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-	static void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, int layerCount);
+	static void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, int layerCount, bool endCmd);
 	static void CopyBufferToImage(VkBuffer buffer, VkImage image, u32 width, u32 height, u32 regionCount, VkBufferImageCopy* regions);
+	static void CopyImageToImage(VkImage base, VkImage sub, int layer, int layerCount, int width, int height, bool endCmd);
 	static VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
 	                                    VkFormatFeatureFlags features);
 	static VkFormat FindDepthFormat();
 	static bool HasStencilComponent(VkFormat format);
 	static void PresentFrame(u32 imageIndex);
 	static void CreateSyncObjects();
-	static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
+	static void FramebufferResizeCallback(SDL_Window* window, int width, int height);
 	static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	static void SetupDebugMessenger();
 	static void PickPhysicalDevice();
@@ -213,6 +214,7 @@ struct AURORA_API agl
 		VkCommandPool commandPool;
 		std::vector<VkCommandBuffer> commandBuffers;
 		VkCommandBuffer GetCommandBuffer(u32 currentImage) { return commandBuffers[currentImage]; }
+		VkCommandBuffer currentBufferUsed=VK_NULL_HANDLE;
 
 
 		aglCommandBuffer();
@@ -267,7 +269,7 @@ struct AURORA_API agl
 		VkImageLayout colorAttachmentLayout;
 	};
 
-	struct aglRenderPass
+	struct AURORA_API aglRenderPass
 	{
 		VkRenderPass renderPass;
 
@@ -275,9 +277,11 @@ struct AURORA_API agl
 
 		void AttachToCommandBuffer(aglCommandBuffer* buffer);
 
-		void Begin(u32 imageIndex);
+		void Begin(u32 imageIndex, VkCommandBuffer cmdBuf);
 
 		void PushRenderQueue();
+		void End(VkCommandBuffer cmdBuf);
+
 
 
 		friend aglFramebuffer;
@@ -301,6 +305,12 @@ struct AURORA_API agl
 		void Recreate();
 	};
 
+	struct aglFramebufferCreationSettings
+	{
+		VkFormat format;
+		VkImageUsageFlags usage;
+	};
+
 	struct aglFramebuffer
 	{
 		std::vector<VkImage> images;
@@ -314,6 +324,8 @@ struct AURORA_API agl
 
 		aglFramebuffer();
 
+		aglFramebuffer(int width, int height, aglFramebufferCreationSettings settings);
+
 		aglRenderPass* GetRenderPass() { return renderPass; };
 
 		void Destroy();
@@ -326,9 +338,9 @@ struct AURORA_API agl
 
 		void CreateFramebuffers();
 
-		void Bind(u32 imageIndex)
+		void Bind(u32 imageIndex, VkCommandBuffer cmdBuf)
 		{
-			GetRenderPass()->Begin(imageIndex);
+			GetRenderPass()->Begin(imageIndex, cmdBuf);
 		}
 
 		bool Resized = false;
@@ -343,6 +355,13 @@ struct AURORA_API agl
 	template <typename T>
 	struct aglUniformBuffer;
 	struct PostProcessingSettings;
+
+	struct aglPushConstant
+	{
+		void* data;
+		u32 size;
+		VkShaderStageFlags flags;
+	};
 
 	struct AURORA_API aglShader
 	{
@@ -368,6 +387,7 @@ struct AURORA_API agl
 
 		aglShaderSettings* settings;
 		aglUniformBuffer<PostProcessingSettings>* ppBuffer = nullptr;
+		aglPushConstant* pushConstant=nullptr;
 
 		aglShader(aglShaderSettings* settings);
 
@@ -505,8 +525,9 @@ struct AURORA_API agl
 
 	// Combined variables
 
-	inline static GLFWwindow* window = nullptr;
+	inline static SDL_Window* window = nullptr;
 	inline static agl_details* details = nullptr;
+	inline static SDL_Event* event=nullptr;
 
 	struct aglVertex
 	{
@@ -563,14 +584,15 @@ struct AURORA_API agl
 	{
 		int width, height, channels;
 		bool isCubemap;
+		aglTexture* baseCubemap;
 	};
 
 	struct AURORA_API aglTexture
 	{
-		aglTexture(std::string path);
+		aglTexture(std::string path, VkFormat format);
 		aglTexture(aglShader* shader, aglTextureCreationInfo info);
 
-		aglTexture(aglTextureRef ref) : aglTexture(ref.path)
+		aglTexture(aglTextureRef ref) : aglTexture(ref.path, VK_FORMAT_R8G8B8A8_SRGB)
 		{
 		};
 
@@ -645,7 +667,7 @@ struct AURORA_API agl
 		aglMesh(aglMeshCreationData data);
 
 #ifdef GRAPHICS_VULKAN
-		void Draw(aglCommandBuffer* commandBuffer, u32 imageIndex);
+		void Draw(VkCommandBuffer commandBuffer, u32 imageIndex);
 #else
 		void Draw();
 #endif

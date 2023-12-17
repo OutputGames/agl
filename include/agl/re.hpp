@@ -10,16 +10,12 @@
 #ifdef GRAPHICS_VULKAN
 
 #define VK_USE_PLATFORM_WIN32_KHR
-#define GLFW_INCLUDE_VULKAN
 #include <vulkan/vulkan.h>
 #include "spirv_reflect/spirv_reflect.h"
 #define vkDestroy(F,T) DestroyVulkanObject<decltype(T)>(F, T)
+#include "SDL_vulkan.h"
 
 #endif
-
-#include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
 
 #include "aurora/utils/utils.hpp"
 

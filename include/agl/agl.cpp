@@ -50,10 +50,10 @@ using namespace std;
 vector<const char*> agl::GetRequiredExtensions()
 {
 	uint32_t glfwExtensionCount = 0;
-	const char** glfwExtensions;
-	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-	std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+	SDL_Vulkan_GetInstanceExtensions(window, &glfwExtensionCount, nullptr);
+	std::vector<const char*> extensions;
+	extensions.resize(glfwExtensionCount);
+	SDL_Vulkan_GetInstanceExtensions(window, &glfwExtensionCount, extensions.data());
 
 	uint32_t extCt = 0;
 	vkEnumerateInstanceExtensionProperties(nullptr, &extCt, nullptr);
@@ -216,7 +216,7 @@ void agl::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 	baseSurface->commandBuffer->EndSingleTimeCommands(commandBuffer);
 }
 
-void agl::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, int layerCount)
+void agl::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, int layerCount, bool endCmd)
 {
 	VkCommandBuffer vkCommandBuffer = baseSurface->commandBuffer->BeginSingleTimeCommands();
 
@@ -250,6 +250,12 @@ void agl::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout ol
 
 		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	} else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	}
 	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
 		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -272,13 +278,28 @@ void agl::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout ol
 		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 		destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 	}
+	else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+		barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	}
 	else {
 		throw std::invalid_argument("unsupported layout transition!");
 	}
 
 	vkCmdPipelineBarrier(vkCommandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-	baseSurface->commandBuffer->EndSingleTimeCommands(vkCommandBuffer);
+	if (endCmd)
+		baseSurface->commandBuffer->EndSingleTimeCommands(vkCommandBuffer);
 }
 
 void agl::CopyBufferToImage(VkBuffer buffer, VkImage image, u32 width, u32 height, u32 regionCount, VkBufferImageCopy* regions)
@@ -286,6 +307,7 @@ void agl::CopyBufferToImage(VkBuffer buffer, VkImage image, u32 width, u32 heigh
 	VkCommandBuffer vkCommandBuffer = baseSurface->commandBuffer->BeginSingleTimeCommands();
 
 	VkBufferImageCopy* bfrs = regions;
+	u32 regCt = regionCount;
 
 	if (regionCount == 0) {
 
@@ -311,16 +333,54 @@ void agl::CopyBufferToImage(VkBuffer buffer, VkImage image, u32 width, u32 heigh
 		dreg[0] = region;
 
 		bfrs = dreg;
+		regCt = 1;
 
 	}
 
-	vkCmdCopyBufferToImage(vkCommandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regionCount, bfrs);
+	vkCmdCopyBufferToImage(vkCommandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regCt, bfrs);
 
 	baseSurface->commandBuffer->EndSingleTimeCommands(vkCommandBuffer);
 }
 
+void agl::CopyImageToImage(VkImage base, VkImage sub, int layer, int layerCount, int width, int height, bool endCmd)
+{
+
+	VkCommandBuffer cmdBuf = baseSurface->commandBuffer->BeginSingleTimeCommands();
+
+	// Copy region for transfer from framebuffer to cube face
+	VkImageCopy copyRegion = {};
+
+	copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	copyRegion.srcSubresource.baseArrayLayer = 0;
+	copyRegion.srcSubresource.mipLevel = 0;
+	copyRegion.srcSubresource.layerCount = layerCount;
+	copyRegion.srcOffset = { 0, 0, 0 };
+
+	copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	copyRegion.dstSubresource.baseArrayLayer = layer;
+	copyRegion.dstSubresource.mipLevel = 0;
+	copyRegion.dstSubresource.layerCount = layerCount;
+	copyRegion.dstOffset = { 0, 0, 0 };
+
+	copyRegion.extent.width = static_cast<uint32_t>(width);
+	copyRegion.extent.height = static_cast<uint32_t>(height);
+	copyRegion.extent.depth = 1;
+
+	vkCmdCopyImage(
+		cmdBuf,
+		sub,
+		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		base,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		1,
+		&copyRegion);
+
+	if (endCmd)
+		baseSurface->commandBuffer->EndSingleTimeCommands(cmdBuf);
+}
+
 VkFormat agl::FindSupportedFormat(const vector<VkFormat>& candidates, VkImageTiling tiling,
-	VkFormatFeatureFlags features)
+                                  VkFormatFeatureFlags features)
 {
 	for (VkFormat format : candidates)
 	{
@@ -427,7 +487,7 @@ void agl::CreateSyncObjects()
 	}
 }
 
-void agl::FramebufferResizeCallback(GLFWwindow* window, int width, int height)
+void agl::FramebufferResizeCallback(SDL_Window* window, int width, int height)
 {
 	baseSurface->framebuffer->Resized = true;
 }
@@ -639,8 +699,9 @@ void agl::CreateLogicalDevice()
 
 void agl::CreateSurface()
 {
-	if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+	if (SDL_Vulkan_CreateSurface(window, instance, &surface) == 0)
 	{
+		cout << SDL_GetError() << endl;
 		throw std::runtime_error("Failed to create window surface!");
 	}
 }
@@ -677,7 +738,7 @@ VkSurfaceFormatKHR agl::chooseSwapSurfaceFormat(const std::vector<VkSurfaceForma
 {
 	for (VkSurfaceFormatKHR availableFormat : availableFormats)
 	{
-		if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace !=
+		if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace ==
 			VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
 		{
 			return availableFormat;
@@ -707,7 +768,7 @@ VkExtent2D agl::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
 		return capabilities.currentExtent;
 	}
 	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
+	SDL_GetWindowSize(window, &width, &height);
 
 	VkExtent2D actualExtent = {
 		static_cast<uint32_t>(width),
@@ -727,7 +788,7 @@ void agl::record_command_buffer(u32 imageIndex)
 
 	baseSurface->commandBuffer->Begin(imageIndex);
 
-	baseSurface->framebuffer->Bind(imageIndex);
+	baseSurface->framebuffer->Bind(imageIndex,baseSurface->commandBuffer->GetCommandBuffer(imageIndex));
 
 	baseSurface->framebuffer->renderPass->PushRenderQueue();
 }
@@ -849,7 +910,6 @@ void agl::aglCommandBuffer::Begin(u32 currentImage)
 
 void agl::aglCommandBuffer::End(u32 currentImage)
 {
-	vkCmdEndRenderPass(commandBuffers[currentImage]);
 	VkResult result = vkEndCommandBuffer(commandBuffers[currentImage]);
 
 	if (result != VK_SUCCESS)
@@ -860,22 +920,29 @@ void agl::aglCommandBuffer::End(u32 currentImage)
 
 VkCommandBuffer agl::aglCommandBuffer::BeginSingleTimeCommands()
 {
-	VkCommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = commandPool;
-	allocInfo.commandBufferCount = 1;
+	if (currentBufferUsed == VK_NULL_HANDLE) {
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandPool = commandPool;
+		allocInfo.commandBufferCount = 1;
 
-	VkCommandBuffer vkCommandBuffer;
-	vkAllocateCommandBuffers(agl::device, &allocInfo, &vkCommandBuffer);
+		VkCommandBuffer vkCommandBuffer;
+		vkAllocateCommandBuffers(agl::device, &allocInfo, &vkCommandBuffer);
 
-	VkCommandBufferBeginInfo beginInfo{};
-	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-	vkBeginCommandBuffer(vkCommandBuffer, &beginInfo);
+		vkBeginCommandBuffer(vkCommandBuffer, &beginInfo);
 
-	return vkCommandBuffer;
+		currentBufferUsed = vkCommandBuffer;
+
+		return vkCommandBuffer;
+	} else
+	{
+		return currentBufferUsed;
+	}
 }
 
 void agl::aglCommandBuffer::EndSingleTimeCommands(VkCommandBuffer vkCommandBuffer)
@@ -890,6 +957,9 @@ void agl::aglCommandBuffer::EndSingleTimeCommands(VkCommandBuffer vkCommandBuffe
 	vkQueueWaitIdle(agl::graphicsQueue);
 
 	vkFreeCommandBuffers(agl::device, commandPool, 1, &vkCommandBuffer);
+
+	currentBufferUsed = VK_NULL_HANDLE;
+
 }
 
 void agl::aglCommandBuffer::CreateCommandPool()
@@ -932,7 +1002,7 @@ void agl::aglRenderQueue::Push()
 	for (aglRenderQueueEntry queue_entry : queueEntries)
 	{
 		queue_entry.shader->BindGraphicsPipeline(pass->commandBuffer->GetCommandBuffer(agl::currentFrame));
-		queue_entry.mesh->Draw(pass->commandBuffer, agl::currentFrame);
+		queue_entry.mesh->Draw(pass->commandBuffer->GetCommandBuffer(agl::currentFrame), agl::currentFrame);
 	}
 
 	queueEntries.clear();
@@ -951,7 +1021,7 @@ void agl::aglRenderPass::AttachToCommandBuffer(aglCommandBuffer* buffer)
 	commandBuffer = buffer;
 }
 
-void agl::aglRenderPass::Begin(u32 imageIndex)
+void agl::aglRenderPass::Begin(u32 imageIndex, VkCommandBuffer cmdBuf)
 {
 	VkRenderPassBeginInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 	renderPassInfo.renderPass = renderPass;
@@ -967,7 +1037,7 @@ void agl::aglRenderPass::Begin(u32 imageIndex)
 	renderPassInfo.clearValueCount = cast(clearValues.size(), u32);
 	renderPassInfo.pClearValues = clearValues.data();
 
-	vkCmdBeginRenderPass(commandBuffer->GetCommandBuffer(imageIndex), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdBeginRenderPass(cmdBuf, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 
 	VkViewport viewport{};
@@ -977,17 +1047,22 @@ void agl::aglRenderPass::Begin(u32 imageIndex)
 	viewport.height = static_cast<float>(framebuffer->extent.height);
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
-	vkCmdSetViewport(commandBuffer->GetCommandBuffer(imageIndex), 0, 1, &viewport);
+	vkCmdSetViewport(cmdBuf, 0, 1, &viewport);
 
 	VkRect2D scissor{};
 	scissor.offset = { 0, 0 };
 	scissor.extent = framebuffer->extent;
-	vkCmdSetScissor(commandBuffer->GetCommandBuffer(imageIndex), 0, 1, &scissor);
+	vkCmdSetScissor(cmdBuf, 0, 1, &scissor);
 }
 
 void agl::aglRenderPass::PushRenderQueue()
 {
 	renderQueue->Push();
+}
+
+void agl::aglRenderPass::End(VkCommandBuffer cmdBuf)
+{
+	vkCmdEndRenderPass(cmdBuf);
 }
 
 void agl::aglRenderPass::CreateRenderPass(aglRenderPassSettings settings)
@@ -1140,6 +1215,18 @@ agl::aglFramebuffer::aglFramebuffer()
 
 }
 
+agl::aglFramebuffer::aglFramebuffer(int width, int height, aglFramebufferCreationSettings settings)
+{
+	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+	{
+		VkImage image;
+		VkDeviceMemory memory;
+		aglTexture::CreateVulkanImage(width, height, settings.format, VK_IMAGE_TILING_OPTIMAL, settings.usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, memory,false);
+		images.push_back(image);
+	}
+	imageFormat = settings.format;
+}
+
 void agl::aglFramebuffer::Destroy()
 {
 
@@ -1153,11 +1240,11 @@ void agl::aglFramebuffer::Destroy()
 void agl::aglFramebuffer::Recreate()
 {
 	int width = 0, height = 0;
-	glfwGetFramebufferSize(window, &width, &height);
+	SDL_GetWindowSize(window, &width, &height);
 	while (width == 0 || height == 0)
 	{
-		glfwGetFramebufferSize(window, &width, &height);
-		glfwWaitEvents();
+		SDL_GetWindowSize(window, &width, &height);
+		SDL_WaitEvent(event);
 	}
 
 	vkDeviceWaitIdle(device);
@@ -1381,6 +1468,9 @@ void agl::aglShader::AttachDescriptorWrites(std::vector<VkWriteDescriptorSet*> w
 
 void agl::aglShader::BindGraphicsPipeline(VkCommandBuffer commandBuffer)
 {
+	if (pushConstant) {
+		vkCmdPushConstants(commandBuffer, GetPipelineLayout(), pushConstant->flags, 0, pushConstant->size, pushConstant->data);
+	}
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
 	ppBuffer->Update(*postProcessing);
@@ -1473,6 +1563,20 @@ void agl::aglShader::CreateGraphicsPipeline()
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1;
 	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+
+	if (pushConstant) {
+		//setup push constants
+		VkPushConstantRange push_constant;
+		//this push constant range starts at the beginning
+		push_constant.offset = 0;
+		//this push constant range takes up the size of a MeshPushConstants struct
+		push_constant.size = pushConstant->size;
+		//this push constant range is accessible only in the vertex shader
+		push_constant.stageFlags = pushConstant->flags;
+
+		pipelineLayoutInfo.pPushConstantRanges = &push_constant;
+		pipelineLayoutInfo.pushConstantRangeCount = 1;
+	}
 
 	if (vkCreatePipelineLayout(GetDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
 	{
@@ -1621,7 +1725,7 @@ void agl::aglShader::AttachTexture(aglTexture* texture, u32 binding)
 	}
 }
 
-agl::aglTexture::aglTexture(string path)
+agl::aglTexture::aglTexture(string path, VkFormat format)
 {
 	this->path = path;
 	int texWidth, texHeight, texChannels;
@@ -1629,7 +1733,7 @@ agl::aglTexture::aglTexture(string path)
 	stbi_set_flip_vertically_on_load(true);
 
 	stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-	VkDeviceSize imageSize = texWidth * texHeight * texChannels;
+	VkDeviceSize imageSize = texWidth * texHeight * 4;
 
 	if (!pixels) {
 		throw std::runtime_error("failed to load texture image!");
@@ -1654,35 +1758,35 @@ agl::aglTexture::aglTexture(string path)
 	std::vector<VkBufferImageCopy> bufferCopyRegions;
 	uint32_t offset = 0;
 
-	for (uint32_t face = 0; face < 6; face++)
-	{
-		VkBufferImageCopy bufferCopyRegion = {};
-		bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		bufferCopyRegion.imageSubresource.mipLevel = 0;
-		bufferCopyRegion.imageSubresource.baseArrayLayer = face;
-		bufferCopyRegion.imageSubresource.layerCount = 1;
-		bufferCopyRegion.imageExtent.width = width;
-		bufferCopyRegion.imageExtent.height = height;
-		bufferCopyRegion.imageExtent.depth = 1;
-		bufferCopyRegion.bufferOffset = offset;
-		bufferCopyRegions.push_back(bufferCopyRegion);
-	}
-
 	bool isCb = false;
 
-	if (ustring::hasEnding(path, "hdr"))
-		isCb = true;
+	if (isCb)
+	{
+		for (uint32_t face = 0; face < 6; face++)
+		{
+			VkBufferImageCopy bufferCopyRegion = {};
+			bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			bufferCopyRegion.imageSubresource.mipLevel = 0;
+			bufferCopyRegion.imageSubresource.baseArrayLayer = face;
+			bufferCopyRegion.imageSubresource.layerCount = 1;
+			bufferCopyRegion.imageExtent.width = width;
+			bufferCopyRegion.imageExtent.height = height;
+			bufferCopyRegion.imageExtent.depth = 1;
+			bufferCopyRegion.bufferOffset = offset;
+			bufferCopyRegions.push_back(bufferCopyRegion);
+		}
+	}
 
-	CreateVulkanImage(width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, isCb);
+	CreateVulkanImage(width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, isCb);
 
-	TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1);
+	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, true);
 	CopyBufferToImage(stagingBuffer, textureImage, static_cast<u32>(texWidth), static_cast<u32>(texHeight), bufferCopyRegions.size(), bufferCopyRegions.data());
-	TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
+	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, true);
 
 	vkDestroy(vkDestroyBuffer, stagingBuffer);
 	vkDestroy(vkFreeMemory, stagingBufferMemory);
 
-	textureImageView = CreateImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT,isCb);
+	textureImageView = CreateImageView(textureImage, format, VK_IMAGE_ASPECT_COLOR_BIT,isCb);
 	CreateTextureSampler();
 }
 
@@ -1695,45 +1799,145 @@ agl::aglTexture::aglTexture(aglShader* shader, aglTextureCreationInfo info)
 
 	VkDeviceSize imageSize = info.width * info.height * info.channels;
 
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingBufferMemory;
+	VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT;
 
-	CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+	VkImageLayout layout;
+	VkFormat format;
 
-	CreateVulkanImage(width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, info.isCubemap);
+	if (info.isCubemap)
+	{
+		usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+		layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		format = VK_FORMAT_R32G32B32A32_SFLOAT;
+	}
+	else {
+		usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		format = VK_FORMAT_R8G8B8A8_SRGB;
+	}
 
-	textureImageView = CreateImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, info.isCubemap);
 
-	aglFramebuffer* fbo = new aglFramebuffer;
+	
+
+	CreateVulkanImage(width, height, format, VK_IMAGE_TILING_OPTIMAL,  usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, info.isCubemap);
+
+	textureImageView = CreateImageView(textureImage, format, VK_IMAGE_ASPECT_COLOR_BIT, info.isCubemap);
+
+	CreateTextureSampler();
+
+	aglFramebuffer* fbo = new aglFramebuffer();
+	if (info.isCubemap)
+	{
+		fbo = new aglFramebuffer(width, height, aglFramebufferCreationSettings{ format , VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT });
+	} else
+	{
+		fbo->imageFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+	}
 	fbo->extent = VkExtent2D{ (u32) width,(u32)height};
-	fbo->imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
-	fbo->imageViews.push_back(textureImageView);
-	fbo->images.push_back(textureImage);
+	if (!info.isCubemap) {
+		fbo->images.push_back(textureImage);
+	}
 	fbo->CreateFramebuffers();
+	if (info.isCubemap)
+	{
+		TransitionImageLayout(fbo->images[0], fbo->imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,1, true);
+	}
+
+	// Pipeline layout
+	struct PushBlock {
+		glm::mat4 mvp;
+		int drawId = 0;
+	} pushBlock;
+
+	glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+	glm::mat4 captureViews[ ] =
+	{
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+	};
+
+
+	if (info.isCubemap) {
+
+		shader->pushConstant = new aglPushConstant();
+		shader->pushConstant->flags = VK_SHADER_STAGE_VERTEX_BIT;
+		shader->pushConstant->size = sizeof(pushBlock);
+		shader->AttachTexture(info.baseCubemap, shader->GetBindingByName("equirectangularMap"));
+	}
+
+
+	shader->settings->renderPass = fbo->renderPass;
+
+	shader->Setup();
+
+	int layerCount = 1;
+
+	if (info.isCubemap)
+		layerCount = 6;
+
+	TransitionImageLayout(textureImage, fbo->imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,layerCount, true);
+
 
 	VkCommandBuffer cmd = baseSurface->commandBuffer->BeginSingleTimeCommands();
 
 	fbo->renderPass->commandBuffer = new aglCommandBuffer;
 	fbo->renderPass->commandBuffer->commandBuffers[0] = cmd;
 
-	shader->settings->renderPass = fbo->renderPass;
-	shader->Setup();
+	if (info.isCubemap) {
 
-	fbo->Bind(0);
+		
 
-	shader->BindGraphicsPipeline(cmd);
+		for (int i = 0; i < 6; ++i)
+		{
+			pushBlock.mvp = captureProjection * captureViews[i];
+			pushBlock.drawId = i;
 
-	((aglPrimitives*) agl_ext::installedExtensions[AGL_EXTENSION_PRIMITIVES_LAYER_NAME])->prims[aglPrimitives::QUAD]->Draw(fbo->renderPass->commandBuffer, 0);
+			shader->pushConstant->data = &pushBlock;
+			shader->pushConstant->size = sizeof(pushBlock);
+
+			fbo->Bind(0,cmd);
+
+			shader->BindGraphicsPipeline(cmd);
+
+			((aglPrimitives*) agl_ext::installedExtensions[AGL_EXTENSION_PRIMITIVES_LAYER_NAME])->prims[aglPrimitives::CUBE]->Draw(cmd, 0);
+
+			fbo->renderPass->End(cmd);
+
+			TransitionImageLayout(fbo->images[0], fbo->imageFormat, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 1, false);
+
+			CopyImageToImage(textureImage,fbo->images[0],i,1,width,height, false);
+
+			TransitionImageLayout(fbo->images[0], fbo->imageFormat, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, false);
+		}
+
+	} else
+	{
+		fbo->Bind(0,cmd);
+
+		shader->BindGraphicsPipeline(cmd);
+
+		((aglPrimitives*) agl_ext::installedExtensions[AGL_EXTENSION_PRIMITIVES_LAYER_NAME])->prims[aglPrimitives::QUAD]->Draw(cmd, 0);
+
+		fbo->renderPass->End(cmd);
+	}
+
+	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, layerCount, false);
 
 	baseSurface->commandBuffer->EndSingleTimeCommands(cmd);
 
 
-	textureImage = fbo->images[0];
-	textureImageView = fbo->imageViews[0];
+	if (!info.isCubemap) {
+		textureImage = fbo->images[0];
+		textureImageView = fbo->imageViews[0];
+		CreateTextureSampler();
+	}
+	else {
 
-	TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
-
-	CreateTextureSampler();
+	}
 
 
 }
@@ -1815,9 +2019,9 @@ void agl::aglTexture::CreateTextureSampler()
 	samplerInfo.magFilter = VK_FILTER_LINEAR;
 	samplerInfo.minFilter = VK_FILTER_LINEAR;
 
-	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 
 	samplerInfo.anisotropyEnable = VK_FALSE;
 
@@ -1875,18 +2079,18 @@ agl::aglMesh::aglMesh(aglMeshCreationData data)
 	Setup();
 }
 
-void agl::aglMesh::Draw(aglCommandBuffer* commandBuffer, u32 imageIndex)
+void agl::aglMesh::Draw(VkCommandBuffer commandBuffer, u32 imageIndex)
 {
 
 	VkBuffer vertexBuffers[ ] = { vertexBuffer };
 	VkDeviceSize offsets[ ] = { 0 };
-	vkCmdBindVertexBuffers(commandBuffer->GetCommandBuffer(imageIndex), 0, 1, vertexBuffers, offsets);
+	vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-	vkCmdBindIndexBuffer(commandBuffer->GetCommandBuffer(imageIndex), indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 	//vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
-	vkCmdDrawIndexed(commandBuffer->GetCommandBuffer(imageIndex), static_cast<u32>(indices.size()), 1, 0, 0, 0);
+	vkCmdDrawIndexed(commandBuffer, static_cast<u32>(indices.size()), 1, 0, 0, 0);
 }
 
 void agl::aglMesh::Setup()
@@ -1940,7 +2144,7 @@ void agl::aglModel::Draw(aglCommandBuffer* commandBuffer, u32 imageIndex)
 {
 	for (aglMesh* mesh : meshes)
 	{
-		mesh->Draw(commandBuffer, imageIndex);
+		mesh->Draw(commandBuffer->GetCommandBuffer(imageIndex), imageIndex);
 	}
 }
 
@@ -1953,23 +2157,15 @@ void agl::agl_init(agl_details* details)
 	agl::details = details;
 	agl::postProcessing = new PostProcessingSettings;
 
-	glfwInit();
-
 #ifdef GRAPHICS_VULKAN
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+	window = SDL_CreateWindow(details->applicationName.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, details->Width, details->Height, SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
 #else
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
+	SDL_CreateWindow(details->applicationName.c_str(), 0, 0, details->Width, details->Height, SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN);
 
 	
 
 #endif
 
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
-	window = glfwCreateWindow(details->Width, details->Height, details->applicationName.c_str(), nullptr, nullptr);
 	//glfwSetFramebufferSizeCallback(window, FramebufferResizeCallback);
 
 #ifdef GRAPHICS_OPENGL
@@ -2031,6 +2227,8 @@ void agl::agl_init(agl_details* details)
 	baseSurface->framebuffer = baseSurface->swapchain->fbo;
 
 	baseSurface->commandBuffer = new aglCommandBuffer;
+
+	baseSurface->framebuffer->renderPass->commandBuffer = baseSurface->commandBuffer;
 
 	// General resource creation
 
@@ -2602,7 +2800,7 @@ void agl::UpdateFrame()
 
 #endif
 
-	glfwPollEvents();
+	event = nullptr;
 }
 
 void agl::Destroy()
@@ -2629,7 +2827,7 @@ void agl::Destroy()
 
 #endif
 
-	glfwDestroyWindow(window);
+	SDL_DestroyWindow(window);
 
-	glfwTerminate();
+	SDL_Quit();
 }

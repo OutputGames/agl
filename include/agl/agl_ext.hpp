@@ -83,7 +83,7 @@ struct AURORA_API aglPrimitives : agl_ext::aglExtension
 
 	void Install() override;
 
-	void DrawPrimitive(aglPrimitiveType type);
+	void DrawPrimitive(aglPrimitiveType type, VkCommandBuffer cmdBuf);
 
 private:
 

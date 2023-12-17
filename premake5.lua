@@ -12,6 +12,7 @@ project "AuroraGraphicsLibrary"
          ".editorconfig",
          "%{_OPTIONS['utilslocation']}/include/**" ,
          "%{_OPTIONS['utilslocation']}/vendor/glm/glm/**" ,
+         "%{_OPTIONS['utilslocation']}".."/vendor/sdl2/include/**", 
          "vendor/**.h"
    }
    includedirs { 
@@ -20,12 +21,13 @@ project "AuroraGraphicsLibrary"
         "vendor/assimp/include/",
          "vendor/","vendor/imgui/" ,
          "%{_OPTIONS['utilslocation']}".."/include", 
-         "%{_OPTIONS['utilslocation']}".."/vendor/glm" 
+         "%{_OPTIONS['utilslocation']}".."/vendor/glm",
+         "%{_OPTIONS['utilslocation']}".."/vendor/sdl2/include" 
       }
    
-   files {"vendor/imgui/backends/imgui_impl_glfw.*", "vendor/imgui/*"}
+   files {"vendor/imgui/backends/imgui_impl_sdl2.*", "vendor/imgui/*"}
    files {"vendor/imgui/misc/debuggers/**", "vendor/imgui/misc/cpp/**"}
-    libdirs {"vendor/glfw/lib-vc2022/","vendor/assimp/lib/Release/"}
+    libdirs {"vendor/glfw/lib-vc2022/","vendor/assimp/lib/Release/", "%{_OPTIONS['utilslocation']}".."/vendor/sdl2/lib" }
 
     links {"glfw3.lib", "assimp-vc143-mt.lib"}
 
@@ -34,10 +36,12 @@ project "AuroraGraphicsLibrary"
       symbols "On"
       debugdir "./"
       runtime "Debug"
+      links {"SDL2d", "SDL2maind"}
 
    filter "configurations:Release"
       defines { "NDEBUG" }
       optimize "On"
+      links {"SDL2", "SDL2main"}
 
    filter {"options:gfxapi=vulkan"}
       defines {"GRAPHICS_VULKAN"}

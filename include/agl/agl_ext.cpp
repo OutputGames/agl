@@ -7,6 +7,10 @@
 #define PAR_SHAPES_IMPLEMENTATION
 #include "par_shapes.h"
 
+#include "imgui/imgui.h"
+#include "imgui/backends/imgui_impl_sdl2.h"
+#include "imgui/backends/imgui_impl_vulkan.h"
+
 using namespace std;
 
 
@@ -27,10 +31,6 @@ void agl_ext::aglExtension::Uninstall()
 {
 	cout << "Uninstalling extension: " << name << endl;
 }
-
-#include "imgui/imgui.h"
-#include "imgui/backends/imgui_impl_glfw.h"
-#include "imgui/backends/imgui_impl_vulkan.h"
 
 void aglImGuiExtension::Install()
 {
@@ -68,7 +68,7 @@ void aglImGuiExtension::Install()
 	vkCreateDescriptorPool(agl::device, &pool_info, nullptr, &imguiPool);
 
 
-	ImGui_ImplGlfw_InitForVulkan(agl::window, true);
+	ImGui_ImplSDL2_InitForVulkan(agl::window);
 	ImGui_ImplVulkan_InitInfo init_info{};
 
 	init_info.Instance = agl::instance;
@@ -90,7 +90,7 @@ void aglImGuiExtension::Refresh()
 	aglExtension::Refresh();
 
 	ImGui_ImplVulkan_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
+	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
 	ImGui::ShowDemoWindow();
 }
@@ -101,18 +101,13 @@ void aglImGuiExtension::Uninstall()
 
 	vkDestroyDescriptorPool(agl::device, imguiPool, nullptr);
 	ImGui_ImplVulkan_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
 }
 
 void aglImGuiExtension::LateRefresh()
 {
 	ImGui::Render();
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), agl::baseSurface->commandBuffer->commandBuffers[agl::currentFrame]);
-
-	GLFWwindow* backup_current_context = glfwGetCurrentContext();
-	ImGui::UpdatePlatformWindows();
-	ImGui::RenderPlatformWindowsDefault();
-	glfwMakeContextCurrent(backup_current_context);
 
 }
 
@@ -232,16 +227,20 @@ void aglPrimitives::Install()
 			break;
 		case QUAD:
 			prims[type] = GenerateQuad();
+			break;
+		case SPHERE:
+			prims[type] = GenerateCube(1, 1, 1);
+			break;
 		}
 
 	}
 }
 
-void aglPrimitives::DrawPrimitive(aglPrimitiveType type)
+void aglPrimitives::DrawPrimitive(aglPrimitiveType type, VkCommandBuffer cmdBuf)
 {
 	agl::aglMesh* mesh = prims[type];
 
-	mesh->Draw(agl::baseSurface->commandBuffer, agl::currentFrame);
+	mesh->Draw(cmdBuf, agl::currentFrame);
 }
 
 agl::aglMesh* aglPrimitives::GenerateCube(float width, float height, float length)
