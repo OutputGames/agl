@@ -26,13 +26,11 @@ struct AURORA_API agl
 {
 	static void agl_init(agl_details* details);
 	static void complete_init();
-#ifdef GRAPHICS_VULKAN
 	inline static bool validationLayersEnabled = true;
-#endif
+
 
 	// Vulkan variables
 
-#ifdef GRAPHICS_VULKAN
 	struct QueueFamilyIndices
 	{
 		std::optional<uint32_t> graphicsFamily;
@@ -81,6 +79,9 @@ struct AURORA_API agl
 	inline static std::vector<VkFence> inFlightFences;
 	inline static u32 currentFrame = 0;
 	inline static u32 currentImage;
+	inline static bool closeWindow = false;
+	IS float deltaTime = 1.0f / 60.0f;
+	IS float frameCount = 1;
 
 
 	static VkDevice GetDevice()
@@ -100,6 +101,11 @@ struct AURORA_API agl
 		aglFramebuffer* framebuffer;
 		aglSwapchain* swapchain;
 		u32 GetNextImageIndex();
+		void Recreate();
+		SurfaceDetails();
+		void Destroy();
+	private:
+		void Create();
 	};
 
 	inline static SurfaceDetails* baseSurface = nullptr;
@@ -134,6 +140,7 @@ struct AURORA_API agl
 	static void record_command_buffer(u32 imageIndex);
 	static void FinishRecordingCommandBuffer(u32 imageIndex);
 	static void DrawFrame();
+	static void PollEvent(SDL_Event event);
 
 	template <typename T>
 	static void DestroyVulkanObject(std::function<void(VkDevice, T, const VkAllocationCallbacks*)> func, T object)
@@ -231,6 +238,8 @@ struct AURORA_API agl
 
 		void CreateCommandPool();
 		void CreateCommandBuffers();
+
+		void Destroy();
 	};
 
 	struct aglMesh;
@@ -363,8 +372,23 @@ struct AURORA_API agl
 		VkShaderStageFlags flags;
 	};
 
+	struct AURORA_API aglShaderFactory
+	{
+
+		static void ReloadAllShaders();
+		static void ReloadShader(u32 id);
+
+		static void InsertShader(aglShader* shader);
+
+	private:
+		IS std::vector<aglShader*> loadedShaders;
+	};
+
 	struct AURORA_API aglShader
 	{
+
+		u32 id;
+
 		aglShaderLevel* vertModule;
 		aglShaderLevel* fragModule;
 
@@ -373,6 +397,7 @@ struct AURORA_API agl
 		friend aglShaderLevel;
 
 		void Setup();
+		void Create();
 
 		struct aglShaderSettings
 		{
@@ -385,11 +410,11 @@ struct AURORA_API agl
 			aglRenderPass* renderPass=baseSurface->framebuffer->renderPass;
 		};
 
-		aglShaderSettings* settings;
+		aglShaderSettings settings;
 		aglUniformBuffer<PostProcessingSettings>* ppBuffer = nullptr;
 		aglPushConstant* pushConstant=nullptr;
 
-		aglShader(aglShaderSettings* settings);
+		aglShader(aglShaderSettings settings);
 
 		static std::string CompileGLSLToSpirV(std::string path);
 
@@ -398,6 +423,7 @@ struct AURORA_API agl
 
 		void Destroy();
 
+		void Recreate();
 
 		std::vector<VkDescriptorPoolSize> poolSizes;
 
@@ -407,8 +433,8 @@ struct AURORA_API agl
 		VkPipelineLayout GetPipelineLayout();
 		VkDescriptorSetLayout GetDescriptorSetLayout();
 		VkDescriptorPool GetDescriptorPool();
-		void AttachDescriptorSetLayout(VkDescriptorSetLayoutBinding binding);
-		void AttachDescriptorPool(VkDescriptorPoolSize pool);
+		void AttachDescriptorSetLayout(VkDescriptorSetLayoutBinding binding, int bindingIdx);
+		void AttachDescriptorPool(VkDescriptorPoolSize pool, int binding);
 
 		void AttachDescriptorWrite(VkWriteDescriptorSet* write, int frame, int binding);
 
@@ -428,100 +454,12 @@ struct AURORA_API agl
 		VkDescriptorPool descriptorPool;
 		std::vector<aglDescriptorPort*> ports;
 
+		bool setup=false;
+
 		void AttachTexture(aglTexture* texture, u32 binding = -1);
 	};
 
 
-#endif
-
-	// OpenGL variables
-
-#ifdef GRAPHICS_OPENGL
-
-	struct aglTexture;
-	template <typename T>
-	struct aglUniformBuffer;
-	struct PostProcessingSettings;
-
-	struct aglShaderBinding
-	{
-		u32 id=-1;
-		GLenum type;
-		std::string name;
-	};
-
-    struct aglShaderBinding_txt : aglShaderBinding
-    {
-		aglTexture* texture;
-    };
-
-	struct aglShader
-	{
-		u32 id;
-
-		struct aglShaderSettings
-		{
-			std::string vertexPath;
-			std::string fragmentPath;
-
-		};
-
-		aglShaderSettings* settings;
-
-		aglShader(aglShaderSettings* settings);
-
-		void Use();
-
-		void AttachTexture(aglTexture* tex, u32 binding);
-		u32 GetBindingByName(std::string n);
-
-		void setBool(const std::string& name, bool value) const;
-
-		// ------------------------------------------------------------------------
-		void setInt(const std::string& name, int value) const;
-
-		// ------------------------------------------------------------------------
-		void setFloat(const std::string& name, float value) const;
-
-		// ------------------------------------------------------------------------
-		void setVec2(const std::string& name, const vec2& value) const;
-
-		void setVec2(const std::string& name, float x, float y) const;
-
-		// ------------------------------------------------------------------------
-		void setVec3(const std::string& name, const vec3& value) const;
-
-		void setVec3(const std::string& name, float x, float y, float z) const;
-
-		// ------------------------------------------------------------------------
-		void setVec4(const std::string& name, const vec4& value) const;
-
-		void setVec4(const std::string& name, float x, float y, float z, float w) const;
-
-		// ------------------------------------------------------------------------
-		void setMat2(const std::string& name, const mat2& mat) const;
-
-		// ------------------------------------------------------------------------
-		void setMat3(const std::string& name, const mat3& mat) const;
-
-		// ------------------------------------------------------------------------
-		void setMat4(const std::string& name, const mat4& mat) const;
-
-	private:
-
-		u32 CompileShaderStage(GLenum stage, std::string code);
-
-		u32 LinkShader(std::vector<u32> shaders);
-
-		std::vector<aglShaderBinding*> bindings;
-
-		aglUniformBuffer<PostProcessingSettings>* ppBuffer=nullptr;
-
-	};
-
-	static void GLAPIENTRY DebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
-
-#endif
 
 	// Combined variables
 
@@ -535,7 +473,6 @@ struct AURORA_API agl
 		vec3 normal;
 		vec2 texCoord;
 
-#ifdef GRAPHICS_VULKAN
 		static VkVertexInputBindingDescription GetBindingDescription()
 		{
 			VkVertexInputBindingDescription bindingDescription{};
@@ -568,11 +505,10 @@ struct AURORA_API agl
 
 			return attributeDescriptions;
 		}
-#endif
 
-#ifdef GRAPHICS_OPENGL
 
-#endif
+
+
 	};
 
 	struct aglTextureRef
@@ -594,9 +530,8 @@ struct AURORA_API agl
 
 		aglTexture(aglTextureRef ref) : aglTexture(ref.path, VK_FORMAT_R8G8B8A8_SRGB)
 		{
-		};
+		}
 
-#ifdef GRAPHICS_VULKAN
 		static VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
 		                                   bool IsCubemap=false);
 		static void CreateVulkanImage(u32 width, u32 height, VkFormat format, VkImageTiling tiling,
@@ -608,12 +543,11 @@ struct AURORA_API agl
 		VkDeviceMemory textureImageMemory;
 		VkImageView textureImageView;
 		VkSampler textureSampler;
-#endif
 
-#ifdef GRAPHICS_OPENGL
+
 		u32 id;
 
-#endif
+
 
 		int width, height, channels;
 
@@ -647,30 +581,19 @@ struct AURORA_API agl
 		std::vector<aglVertex> vertices;
 		std::vector<unsigned> indices;
 
-#ifdef GRAPHICS_VULKAN
 		VkBuffer vertexBuffer;
 		VkDeviceMemory vertexBufferMemory;
 		VkBuffer indexBuffer;
 		VkDeviceMemory indexBufferMemory;
 
-#else
-
-		u32 vertexBuffer=0;
-		u32 indexBuffer=0;
-		u32 vertexArray=0;
-
-#endif
 
 		u32 materialIndex;
 
 		aglMesh(aiMesh* mesh);
 		aglMesh(aglMeshCreationData data);
 
-#ifdef GRAPHICS_VULKAN
 		void Draw(VkCommandBuffer commandBuffer, u32 imageIndex);
-#else
-		void Draw();
-#endif
+
 
 
 		std::vector<aglTexture> textures;
@@ -688,11 +611,7 @@ struct AURORA_API agl
 
 		aglModel(std::string path);
 
-#ifdef GRAPHICS_VULKAN
 		void Draw(aglCommandBuffer* commandBuffer, u32 imageIndex);
-#else
-		void Draw();
-#endif
 
 
 		std::vector<aglTextureRef> LoadMaterialTextures(aiMaterial* material, aiTextureType type, std::string path);
@@ -700,12 +619,11 @@ struct AURORA_API agl
 
 	struct aglUniformBufferSettings
 	{
-#ifdef GRAPHICS_VULKAN
 		VkShaderStageFlags flags;
-#else
+
 		std::string name;
 		u32 binding;
-#endif
+
 	};
 
 	template <typename T>
@@ -719,7 +637,6 @@ struct AURORA_API agl
 			// UB creation
 
 
-#ifdef GRAPHICS_VULKAN
 			VkDeviceSize bufferSize = sizeof(T);
 
 			uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -734,51 +651,41 @@ struct AURORA_API agl
 
 				vkMapMemory(GetDevice(), ubMemory[i], 0, bufferSize, 0, &mappedUbs[i]);
 			}
-#else
+
 
 			if (settings.binding >= 32)
 			{
-				throw new exception("Invalid binding.");
+				throw std::exception("Invalid binding.");
 			}
 
-			glGenBuffers(1, &ubo);
-			glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-			glBufferData(GL_UNIFORM_BUFFER, sizeof(T), NULL, GL_STATIC_DRAW); // allocate 152 bytes of memory
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-			glBindBufferRange(GL_UNIFORM_BUFFER, settings.binding, ubo, 0, sizeof(T));
-#endif
 		}
 
 		void Destroy()
 		{
-#ifdef GRAPHICS_VULKAN
 			for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 			{
 				vkDestroyBuffer(GetDevice(), uniformBuffers[i], nullptr);
 				vkFreeMemory(GetDevice(), ubMemory[i], nullptr);
 			}
-#else
 
-#endif
+
+
 		}
 
 		void Update(T data)
 		{
-#ifdef GRAPHICS_VULKAN
 			memcpy(mappedUbs[currentFrame], &data, sizeof(data));
-#else
-			glBindBuffer(GL_UNIFORM_BUFFER, ubo);
 
-			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(T), &data);
-
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-#endif
 		}
 
 		void AttachToShader(aglShader* shader, u32 bindingIdx)
 		{
-#ifdef GRAPHICS_VULKAN
+
+			if (bindingIdx == -1)
+			{
+				throw new std::exception("Binding index is less than one. Invalid binding requested.");
+			}
+
 			VkDescriptorSetLayoutBinding uboLayoutBinding{};
 			uboLayoutBinding.binding = bindingIdx;
 			uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -791,9 +698,9 @@ struct AURORA_API agl
 			uboPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			uboPoolSize.descriptorCount = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
 
-			shader->AttachDescriptorPool(uboPoolSize);
+			shader->AttachDescriptorPool(uboPoolSize,bindingIdx);
 
-			CreateBinding(uboLayoutBinding);
+			CreateBinding(uboLayoutBinding, bindingIdx);
 
 			for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 			{
@@ -812,29 +719,24 @@ struct AURORA_API agl
 				shader->AttachDescriptorWrite(descriptorWrite, i, bindingIdx);
 			}
 
-#else
-			unsigned index = glGetUniformBlockIndex(shader->id, settings.name.c_str());
-			glUniformBlockBinding(shader->id, index, settings.binding);
 
 
-#endif
 		}
 
-#ifdef GRAPHICS_OPENGL
 		unsigned ubo;
-#else
 
 
-		void CreateBinding(VkDescriptorSetLayoutBinding bind)
+
+		void CreateBinding(VkDescriptorSetLayoutBinding bind, int bindingIdx)
 		{
 			binding = bind;
-			shader->AttachDescriptorSetLayout(binding);
+			shader->AttachDescriptorSetLayout(binding, bindingIdx);
 		}
 
-		void CreatePoolSize(VkDescriptorPoolSize poolSz)
+		void CreatePoolSize(VkDescriptorPoolSize poolSz, int bindingIdx)
 		{
 			poolSize = poolSz;
-			shader->AttachDescriptorPool(poolSize);
+			shader->AttachDescriptorPool(poolSize, bindingIdx);
 		}
 
 		VkBuffer GetUniformBuffer(int frame) { return uniformBuffers[frame]; }
@@ -847,7 +749,7 @@ struct AURORA_API agl
 		VkDescriptorSetLayoutBinding binding;
 		VkDescriptorPoolSize poolSize;
 
-#endif
+
 
 		aglShader* shader;
 
@@ -864,4 +766,5 @@ struct AURORA_API agl
 	static void Destroy();
 };
 
-#endif // AGL_HPP
+ // AGL_HPP
+#endif

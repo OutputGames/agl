@@ -229,7 +229,7 @@ void aglPrimitives::Install()
 			prims[type] = GenerateQuad();
 			break;
 		case SPHERE:
-			prims[type] = GenerateCube(1, 1, 1);
+			prims[type] = agl::aglModel("testresources/models/sphere.obj").meshes[0];
 			break;
 		}
 

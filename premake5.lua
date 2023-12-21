@@ -30,6 +30,10 @@ project "AuroraGraphicsLibrary"
     libdirs {"vendor/glfw/lib-vc2022/","vendor/assimp/lib/Release/", "%{_OPTIONS['utilslocation']}".."/vendor/sdl2/lib" }
 
     links {"glfw3.lib", "assimp-vc143-mt.lib"}
+    links {"vulkan-1.lib"}
+    libdirs {"C:/VulkanSDK/1.3.250.0/Lib"}
+    includedirs {"C:/VulkanSDK/1.3.250.0/Include"}
+    files {"vendor/imgui/backends/imgui_impl_vulkan.*"}
 
    filter "configurations:Debug"
       defines { "DEBUG" }
@@ -43,19 +47,5 @@ project "AuroraGraphicsLibrary"
       optimize "On"
       links {"SDL2", "SDL2main"}
 
-   filter {"options:gfxapi=vulkan"}
-      defines {"GRAPHICS_VULKAN"}
-      links {"vulkan-1.lib"}
-      libdirs {"C:/VulkanSDK/1.3.250.0/Lib"}
-      includedirs {"C:/VulkanSDK/1.3.250.0/Include"}
-      removefiles {"include/GL/**"}
-      files {"vendor/imgui/backends/imgui_impl_vulkan.*"}
 
-   filter {"options:gfxapi=opengl"}
-      defines {"GRAPHICS_OPENGL"}
-      libdirs {"lib/glew"}
-      links {"glew32.lib", "opengl32.lib"}
-      removefiles {"include/spirv_reflect/**"}
-      files {"vendor/imgui/backends/imgui_impl_opengl3.*"}
-   
    
