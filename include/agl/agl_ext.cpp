@@ -6,10 +6,12 @@
 
 #define PAR_SHAPES_IMPLEMENTATION
 #include "par_shapes.h"
+#include "aurora/utils/fs.hpp"
 
 #include "imgui/imgui.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_vulkan.h"
+#include "agl/models/sphere.hpp"
 
 using namespace std;
 
@@ -80,7 +82,7 @@ void aglImGuiExtension::Install()
 	init_info.ImageCount = MAX_FRAMES_IN_FLIGHT;
 	init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
-	ImGui_ImplVulkan_Init(&init_info, agl::baseSurface->framebuffer->renderPass->renderPass);
+	ImGui_ImplVulkan_Init(&init_info, agl::GetSurfaceDetails()->framebuffer->renderPass->renderPass);
 
 	ImGui_ImplVulkan_CreateFontsTexture();
 
@@ -107,7 +109,7 @@ void aglImGuiExtension::Uninstall()
 void aglImGuiExtension::LateRefresh()
 {
 	ImGui::Render();
-	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), agl::baseSurface->commandBuffer->commandBuffers[agl::currentFrame]);
+	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), agl::GetSurfaceDetails()->commandBuffer->commandBuffers[agl::GetCurrentImage()]);
 
 }
 
@@ -216,6 +218,15 @@ void aglPrimitives::Install()
 		aglPrimitiveType::QUAD
 	};
 
+	/*
+	{
+
+		agl::aglMesh* sphereMesh = agl::aglModel("resources/models/sphere.obj").meshes[0];
+
+		agl::aglMesh::ExportAsCode(sphereMesh, "include/agl/models/sphere.hpp");
+	}
+	*/
+
 	for (auto primitive : primitives)
 	{
 		aglPrimitiveType type = primitive;
@@ -229,7 +240,48 @@ void aglPrimitives::Install()
 			prims[type] = GenerateQuad();
 			break;
 		case SPHERE:
-			prims[type] = agl::aglModel("testresources/models/sphere.obj").meshes[0];
+
+
+			vector<agl::aglVertex> vertices(SPHERE_VERTEX_COUNT);
+			vector<unsigned> indices(SPHERE_TRIANGLE_COUNT*3);
+
+			for (int i = 0; i < SPHERE_VERTEX_COUNT; ++i)
+			{
+
+				float p[3];
+				for (int j = 0; j < 3; ++j)
+				{
+					p[j] = SPHERE_VERTEX_DATA[(i * 3) + j];
+				}
+
+				float n[3];
+				for (int j = 0; j < 3; ++j)
+				{
+					n[j] = SPHERE_NORMAL_DATA[(i * 3) + j];
+				}
+
+				float t[2];
+				for (int j = 0; j < 2; ++j)
+				{
+					t[j] = SPHERE_TEXCOORD_DATA[(i * 2) + j];
+				}
+
+				vertices[i].position = make_vec3(p);
+				vertices[i].normal = make_vec3(n);
+				vertices[i].texCoord = make_vec2(t);
+			}
+
+			for (int i = 0; i < SPHERE_TRIANGLE_COUNT*3; ++i)
+			{
+				indices[i] = SPHERE_INDEX_DATA[i];
+			}
+
+			
+
+
+			//prims[type] = GenerateCube(1, 1, 1);
+
+			prims[type] = new agl::aglMesh(agl::aglMeshCreationData{vertices, indices});
 			break;
 		}
 
@@ -240,7 +292,7 @@ void aglPrimitives::DrawPrimitive(aglPrimitiveType type, VkCommandBuffer cmdBuf)
 {
 	agl::aglMesh* mesh = prims[type];
 
-	mesh->Draw(cmdBuf, agl::currentFrame);
+	mesh->Draw(cmdBuf, agl::GetCurrentImage());
 }
 
 agl::aglMesh* aglPrimitives::GenerateCube(float width, float height, float length)

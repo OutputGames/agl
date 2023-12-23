@@ -11,6 +11,7 @@
 #include <assimp/postprocess.h>     // Post processing flags
 
 #include "agl_ext.hpp"
+#include "maths.hpp"
 
 using namespace std;
 
@@ -103,6 +104,11 @@ void agl::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& c
 	createInfo.pfnUserCallback = DebugCallback;
 }
 
+VkDevice agl::GetDevice()
+{
+	return device;
+}
+
 u32 agl::SurfaceDetails::GetNextImageIndex()
 {
 	vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
@@ -163,6 +169,16 @@ void agl::SurfaceDetails::Create()
 
 	framebuffer->GetRenderPass()->AttachToCommandBuffer(commandBuffer);
 
+}
+
+agl::SurfaceDetails* agl::GetSurfaceDetails()
+{
+	return baseSurface;
+}
+
+u32 agl::GetCurrentImage()
+{
+	return currentFrame;
 }
 
 void agl::CreateInstance()
@@ -437,6 +453,11 @@ VkFormat agl::FindSupportedFormat(const vector<VkFormat>& candidates, VkImageTil
 	throw std::runtime_error("Failed to find supported format");
 }
 
+vec2 agl::GetMainFramebufferSize()
+{
+	return aglMath::ConvertExtents(agl::baseSurface->framebuffer->extent);
+}
+
 VkFormat agl::FindDepthFormat()
 {
 	return FindSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
@@ -451,10 +472,17 @@ void agl::PresentFrame(u32 imageIndex)
 {
 	VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 
-	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
-	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = waitSemaphores;
+	vector<VkSemaphore> waitSemaphores = { imageAvailableSemaphores[currentFrame] };
+
+	if (aglComputeShader::AreComputeShadersUsed)
+	{
+		waitSemaphores.push_back(aglComputeShader::computeFinishedSemaphores[currentFrame]);
+	}
+
+
+	VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,VK_PIPELINE_STAGE_VERTEX_INPUT_BIT };
+	submitInfo.waitSemaphoreCount = waitSemaphores.size();
+	submitInfo.pWaitSemaphores = waitSemaphores.data();
 	submitInfo.pWaitDstStageMask = waitStages;
 	submitInfo.commandBufferCount = 1;
 
@@ -658,7 +686,7 @@ agl::QueueFamilyIndices agl::FindQueueFamilies(VkPhysicalDevice device)
 	int i = 0;
 	for (const auto& queueFamily : queueFamilies)
 	{
-		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT))
 		{
 			indices.graphicsFamily = i;
 		}
@@ -731,6 +759,7 @@ void agl::CreateLogicalDevice()
 	}
 
 	vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
+	vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &aglComputeShader::computeQueue);
 	vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 }
 
@@ -823,6 +852,7 @@ VkExtent2D agl::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
 void agl::record_command_buffer(u32 imageIndex)
 {
 
+
 	baseSurface->commandBuffer->Begin(imageIndex);
 
 	baseSurface->framebuffer->Bind(imageIndex,baseSurface->commandBuffer->GetCommandBuffer(imageIndex));
@@ -832,6 +862,7 @@ void agl::record_command_buffer(u32 imageIndex)
 
 void agl::FinishRecordingCommandBuffer(u32 imageIndex)
 {
+	GetSurfaceDetails()->framebuffer->renderPass->End(GetSurfaceDetails()->commandBuffer->GetCommandBuffer(imageIndex));
 	baseSurface->commandBuffer->End(imageIndex);
 }
 
@@ -896,9 +927,7 @@ agl::aglShaderLevel::aglShaderLevel(string code, aglShaderType type, aglShader* 
 
 			if (binding->descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
 			{
-				aglTexturePort* tport = new aglTexturePort;
-				tport->texture = nullptr;
-				port = tport;
+				port->texture = nullptr;
 			}
 
 			port->type = static_cast<aglDescriptorType>(binding->descriptor_type);
@@ -940,6 +969,7 @@ agl::aglCommandBuffer::aglCommandBuffer()
 
 void agl::aglCommandBuffer::Begin(u32 currentImage)
 {
+
 	vkResetCommandBuffer(commandBuffers[currentImage], 0);
 
 	VkCommandBufferBeginInfo beginInfo{};
@@ -1382,7 +1412,7 @@ void agl::aglShaderFactory::InsertShader(aglShader* shader)
 void agl::aglShader::Setup()
 {
 
-	ppBuffer = new aglUniformBuffer<PostProcessingSettings>(this, { VK_SHADER_STAGE_FRAGMENT_BIT });
+	ppBuffer = new aglUniformBuffer(this, { VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(PostProcessingSettings)});
 
 	if (GetBindingByName("postProcessingSettings") != -1) {
 		ppBuffer->AttachToShader(this, GetBindingByName("postProcessingSettings"));
@@ -1394,7 +1424,12 @@ void agl::aglShader::Setup()
 
 	// Graphics Pipeline
 
-	CreateGraphicsPipeline();
+	if (compModule == nullptr) {
+		CreateGraphicsPipeline();
+	} else
+	{
+		CreateComputePipeline();
+	}
 
 	CreateDescriptorSet();
 
@@ -1404,24 +1439,48 @@ void agl::aglShader::Setup()
 void agl::aglShader::Create()
 {
 
-	vertexCode = ReadString(settings.vertexPath);
+	if (settings.paths.vertexPath != "") {
+		string path = settings.paths.vertexPath;
+		vertexCode = ReadString(path);
 
-	if (ustring::hasEnding(settings.vertexPath, "vert"))
-	{
-		vertexCode = CompileGLSLToSpirV(settings.vertexPath);
+		if (ustring::hasEnding(path, "vert"))
+		{
+			vertexCode = CompileGLSLToSpirV(path);
+		}
+
+		vertModule = new aglShaderLevel(vertexCode, VERTEX, this);
+
+		shaderStages.push_back(vertModule->stageInfo);
 	}
 
+	if (settings.paths.fragmentPath != "") {
+		string path = settings.paths.fragmentPath;
+		fragmentCode = ReadString(path);
 
-	vertModule = new aglShaderLevel(vertexCode, VERTEX, this);
+		if (ustring::hasEnding(path, "frag"))
+		{
+			fragmentCode = CompileGLSLToSpirV(path);
+		}
 
-	fragmentCode = ReadString(settings.fragmentPath);
+		fragModule = new aglShaderLevel(fragmentCode, FRAGMENT, this);
 
-	if (ustring::hasEnding(settings.fragmentPath, "frag"))
-	{
-		fragmentCode = CompileGLSLToSpirV(settings.fragmentPath);
+		shaderStages.push_back(fragModule->stageInfo);
 	}
 
-	fragModule = new aglShaderLevel(fragmentCode, FRAGMENT, this);
+	if (settings.paths.computePath != "") {
+		string path = settings.paths.computePath;
+		computeCode = ReadString(path);
+
+		if (ustring::hasEnding(path, "comp"))
+		{
+			computeCode = CompileGLSLToSpirV(path);
+		}
+
+		compModule = new aglShaderLevel(computeCode, COMPUTE, this);
+
+		shaderStages.push_back(compModule->stageInfo);
+	}
+
 
 	for (int i = 0; i < descriptorWrites.size(); ++i)
 	{
@@ -1430,7 +1489,6 @@ void agl::aglShader::Create()
 		}
 	}
 
-	shaderStages = { vertModule->stageInfo, fragModule->stageInfo };
 }
 
 agl::aglShader::aglShader(aglShaderSettings settings)
@@ -1458,6 +1516,11 @@ std::string agl::aglShader::CompileGLSLToSpirV(std::string path)
 	if (ustring::hasEnding(elevPath, ".frag")) {
 		elevPath = ustring::substring(elevPath, ".frag");
 		elevPath += ".frag-spv";
+	}
+
+	if (ustring::hasEnding(elevPath, ".comp")) {
+		elevPath = ustring::substring(elevPath, ".comp");
+		elevPath += ".comp-spv";
 	}
 
 	string spvPath = "compiled/shaders/" + elevPath;
@@ -1517,11 +1580,19 @@ u32 agl::aglShader::GetBindingByName(string n)
 
 void agl::aglShader::Destroy()
 {
-	fragModule->Destroy();
-	vertModule->Destroy();
+	if (fragModule) {
+		fragModule->Destroy();
+	}
+	if (vertModule) {
+		vertModule->Destroy();
+	}
+	if (compModule)
+	{
+		compModule->Destroy();
+	}
 
 	vkDestroyDescriptorSetLayout(GetDevice(), descriptorSetLayout, nullptr);
-	vkDestroyPipeline(GetDevice(), graphicsPipeline, nullptr);
+	vkDestroyPipeline(GetDevice(), mainPipeline, nullptr);
 }
 
 void agl::aglShader::Recreate()
@@ -1585,9 +1656,9 @@ void agl::aglShader::BindGraphicsPipeline(VkCommandBuffer commandBuffer)
 	if (pushConstant) {
 		vkCmdPushConstants(commandBuffer, GetPipelineLayout(), pushConstant->flags, 0, pushConstant->size, pushConstant->data);
 	}
-	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mainPipeline);
 
-	ppBuffer->Update(*postProcessing);
+	ppBuffer->Update(&postProcessing, sizeof(PostProcessingSettings));
 
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetPipelineLayout(), 0, 1, &descriptorSets[currentImage], 0, nullptr);
 }
@@ -1699,7 +1770,7 @@ void agl::aglShader::CreateGraphicsPipeline()
 
 	VkGraphicsPipelineCreateInfo pipelineInfo{};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	pipelineInfo.stageCount = 2;
+	pipelineInfo.stageCount = shaderStages.size();
 	pipelineInfo.pStages = shaderStages.data();
 	pipelineInfo.pVertexInputState = &vertexInputInfo;
 	pipelineInfo.pInputAssemblyState = &inputAssembly;
@@ -1715,10 +1786,47 @@ void agl::aglShader::CreateGraphicsPipeline()
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 	pipelineInfo.basePipelineIndex = -1;
 
-	if (vkCreateGraphicsPipelines(GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) !=
+	if (vkCreateGraphicsPipelines(GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &mainPipeline) !=
 		VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create graphics pipeline.");
+	}
+}
+
+void agl::aglShader::CreateComputePipeline()
+{
+
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.setLayoutCount = 1;
+	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+
+	if (pushConstant) {
+		//setup push constants
+		VkPushConstantRange push_constant;
+		//this push constant range starts at the beginning
+		push_constant.offset = 0;
+		//this push constant range takes up the size of a MeshPushConstants struct
+		push_constant.size = pushConstant->size;
+		//this push constant range is accessible only in the vertex shader
+		push_constant.stageFlags = pushConstant->flags;
+
+		pipelineLayoutInfo.pPushConstantRanges = &push_constant;
+		pipelineLayoutInfo.pushConstantRangeCount = 1;
+	}
+
+	if (vkCreatePipelineLayout(GetDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+	{
+		throw std::runtime_error("failed to create pipeline layout!");
+	}
+
+	VkComputePipelineCreateInfo pipelineInfo{};
+	pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+	pipelineInfo.layout = pipelineLayout;
+	pipelineInfo.stage = shaderStages[0];
+
+	if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &mainPipeline) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create compute pipeline!");
 	}
 }
 
@@ -1757,8 +1865,7 @@ void agl::aglShader::CreateDescriptorSet()
 	for (auto port : ports)
 	{
 		if (port->type == DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
-			aglTexturePort* tport = static_cast<aglTexturePort*>(port);
-			aglTexture* texture = tport->texture;
+			aglTexture* texture = port->texture;
 			if (texture) {
 				for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 				{
@@ -1775,6 +1882,28 @@ void agl::aglShader::CreateDescriptorSet()
 					descriptorWrite->pImageInfo = imageInfo;
 
 					AttachDescriptorWrite(descriptorWrite, i,port->binding);
+				}
+			}
+		}
+
+		if (port->type == DESCRIPTOR_TYPE_STORAGE_IMAGE) {
+			aglTexture* texture = port->texture;
+			if (texture) {
+				for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+				{
+
+					VkDescriptorImageInfo* imageInfo = new VkDescriptorImageInfo;
+					imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					imageInfo->imageView = texture->textureImageView;
+					imageInfo->sampler = texture->textureSampler;
+
+					VkWriteDescriptorSet* descriptorWrite;
+
+					descriptorWrite = CreateDescriptorSetWrite(i, port->binding);
+					descriptorWrite->descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+					descriptorWrite->pImageInfo = imageInfo;
+
+					AttachDescriptorWrite(descriptorWrite, i, port->binding);
 				}
 			}
 		}
@@ -1833,11 +1962,286 @@ void agl::aglShader::AttachTexture(aglTexture* texture, u32 binding)
 	if (binding != -1)
 	{
 
-		aglTexturePort* port = static_cast<aglTexturePort*>(ports[binding]);
-
-		port->texture = texture;
+		ports[binding]->texture = texture;
 	}
 }
+
+agl::aglComputeShader::aglComputeShader(aglShaderSettings settings) : aglShader(settings)
+{
+	descriptorWrites.resize(MAX_FRAMES_IN_FLIGHT);
+	bindings.resize(1);
+
+	this->settings = settings;
+
+	aglComputeShader::Create();
+}
+
+void agl::aglComputeShader::BeginDispatchField()
+{
+
+	VkCommandBuffer commandBuffer = computeCommandBuffers[currentFrame];
+
+	// Compute submission        
+	vkWaitForFences(device, 1, &computeInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+	vkResetFences(device, 1, &computeInFlightFences[currentFrame]);
+
+
+	vkResetCommandBuffer(computeCommandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
+
+
+	VkCommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+	if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+		throw std::runtime_error("failed to begin recording compute command buffer!");
+	}
+}
+
+void agl::aglComputeShader::Dispatch(u32 imageIndex, vec3 groupCount)
+{
+
+	if (setup == false)
+	{
+		Setup();
+	}
+
+	VkCommandBuffer commandBuffer = computeCommandBuffers[imageIndex];
+
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mainPipeline);
+
+	if (ports.size() > 0) {
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+	}
+
+	vkCmdDispatch(commandBuffer, groupCount.x, groupCount.y, groupCount.z);
+
+}
+
+void agl::aglComputeShader::EndDispatchField()
+{
+
+	VkCommandBuffer commandBuffer = computeCommandBuffers[currentFrame];
+
+	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+		throw std::runtime_error("failed to record compute command buffer!");
+	}
+
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &computeCommandBuffers[currentFrame];
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = &computeFinishedSemaphores[currentFrame];
+
+
+	VkPipelineStageFlags waitStages[ ] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT };
+	submitInfo.pWaitDstStageMask = waitStages;
+
+	if (vkQueueSubmit(computeQueue, 1, &submitInfo, computeInFlightFences[currentFrame]) != VK_SUCCESS) {
+		throw std::runtime_error("failed to submit compute command buffer!");
+	}
+}
+
+void agl::aglComputeShader::Create()
+{
+	AreComputeShadersUsed = true;
+	aglShader::Create();
+
+	if (!ObjectsCreated) {
+		CreateCommandBuffers();
+		CreateSyncObjects();
+		ObjectsCreated = true;
+	}
+}
+
+void agl::aglComputeShader::Destroy()
+{
+	aglShader::Destroy();
+}
+
+void agl::aglComputeShader::AttachTexture(aglTexture* texture, u32 binding)
+{
+	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+	samplerLayoutBinding.binding = binding;
+	samplerLayoutBinding.descriptorCount = 1;
+	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+	samplerLayoutBinding.pImmutableSamplers = nullptr;
+	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+
+	VkDescriptorPoolSize samplerPoolSize{};
+
+	samplerPoolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+	samplerPoolSize.descriptorCount = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
+
+	AttachDescriptorPool(samplerPoolSize, binding);
+	AttachDescriptorSetLayout(samplerLayoutBinding, binding);
+
+	if (binding != -1)
+	{
+
+		ports[binding]->texture = texture;
+	}
+}
+
+void agl::aglComputeShader::CreateCommandBuffers()
+{
+	computeCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
+	VkCommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.commandPool = baseSurface->commandBuffer->commandPool;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandBufferCount = (uint32_t) computeCommandBuffers.size();
+
+	if (vkAllocateCommandBuffers(device, &allocInfo, computeCommandBuffers.data()) != VK_SUCCESS) {
+		throw std::runtime_error("failed to allocate compute command buffers!");
+	}
+}
+
+void agl::aglComputeShader::CreateSyncObjects()
+{
+	computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+	computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
+	VkSemaphoreCreateInfo semaphoreInfo{};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	VkFenceCreateInfo fenceInfo{};
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &computeFinishedSemaphores[i]) != VK_SUCCESS ||
+			vkCreateFence(device, &fenceInfo, nullptr, &computeInFlightFences[i]) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create compute synchronization objects for a frame!");
+		}
+	}
+}
+
+agl::aglStorageBuffer::aglStorageBuffer(aglBufferSettings settings)
+{
+	this->settings = settings;
+
+	// UB creation
+
+
+	VkDeviceSize bufferSize = settings.bufferSize;
+
+	buffers.resize(MAX_FRAMES_IN_FLIGHT);
+	bufferMemory.resize(MAX_FRAMES_IN_FLIGHT);
+	mappedBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
+	VkDevice dev = agl::GetDevice();
+
+	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+	{
+		CreateBuffer(bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+					 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+					 buffers[i], bufferMemory[i]);
+
+		vkMapMemory(dev, bufferMemory[i], 0, bufferSize, 0, &mappedBuffers[i]);
+	}
+
+
+	if (settings.binding >= 32)
+	{
+		throw std::exception("Invalid binding.");
+	}
+
+}
+
+
+void agl::aglStorageBuffer::Destroy()
+{
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		vkDestroyBuffer(GetDevice(), buffers[i], nullptr);
+		vkFreeMemory(GetDevice(), bufferMemory[i], nullptr);
+	}
+
+
+
+}
+
+void agl::aglStorageBuffer::AttachToShader(aglShader* shader, u32 bindingIdx)
+{
+
+	if (bindingIdx == -1)
+	{
+		throw new std::exception("Binding index is less than one. Invalid binding requested.");
+	}
+
+	this->shader = shader;
+
+	VkDescriptorSetLayoutBinding uboLayoutBinding{};
+	uboLayoutBinding.binding = bindingIdx;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.stageFlags = settings.flags;
+	uboLayoutBinding.pImmutableSamplers = nullptr;
+
+	VkDescriptorPoolSize uboPoolSize{};
+
+	uboPoolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	uboPoolSize.descriptorCount = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
+
+	shader->AttachDescriptorPool(uboPoolSize, bindingIdx);
+
+	CreateBinding(uboLayoutBinding, bindingIdx);
+
+	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+	{
+		auto bufferInfo = new VkDescriptorBufferInfo;
+		bufferInfo->buffer = GetBuffer(i);
+		bufferInfo->offset = 0;
+		bufferInfo->range = settings.bufferSize;
+
+		VkWriteDescriptorSet* descriptorWrite;
+
+
+		descriptorWrite = shader->CreateDescriptorSetWrite(i, bindingIdx);
+		descriptorWrite->descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		descriptorWrite->pBufferInfo = bufferInfo;
+
+		shader->AttachDescriptorWrite(descriptorWrite, i, bindingIdx);
+	}
+
+}
+
+void agl::aglStorageBuffer::CreateBinding(VkDescriptorSetLayoutBinding bind, int bindingIdx)
+{
+	binding = bind;
+	shader->AttachDescriptorSetLayout(binding, bindingIdx);
+}
+
+
+void agl::aglStorageBuffer::CreatePoolSize(VkDescriptorPoolSize poolSz, int bindingIdx)
+{
+	poolSize = poolSz;
+	shader->AttachDescriptorPool(poolSize, bindingIdx);
+}
+
+VkBuffer agl::aglStorageBuffer::GetBuffer(int frame)
+{
+	return buffers[frame];
+}
+
+void agl::aglStorageBuffer::Update(void* data, size_t dataSize)
+{
+	int bufferSize = settings.bufferSize;
+
+
+	memcpy(mappedBuffers[currentFrame], data, dataSize);
+
+}
+
+void* agl::aglStorageBuffer::GetData()
+{
+	return mappedBuffers[currentFrame];
+}
+
 
 agl::aglTexture::aglTexture(string path, VkFormat format)
 {
@@ -1872,26 +2276,7 @@ agl::aglTexture::aglTexture(string path, VkFormat format)
 	std::vector<VkBufferImageCopy> bufferCopyRegions;
 	uint32_t offset = 0;
 
-	bool isCb = false;
-
-	if (isCb)
-	{
-		for (uint32_t face = 0; face < 6; face++)
-		{
-			VkBufferImageCopy bufferCopyRegion = {};
-			bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			bufferCopyRegion.imageSubresource.mipLevel = 0;
-			bufferCopyRegion.imageSubresource.baseArrayLayer = face;
-			bufferCopyRegion.imageSubresource.layerCount = 1;
-			bufferCopyRegion.imageExtent.width = width;
-			bufferCopyRegion.imageExtent.height = height;
-			bufferCopyRegion.imageExtent.depth = 1;
-			bufferCopyRegion.bufferOffset = offset;
-			bufferCopyRegions.push_back(bufferCopyRegion);
-		}
-	}
-
-	CreateVulkanImage(width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, isCb);
+	CreateVulkanImage(width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, false);
 
 	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, true);
 	CopyBufferToImage(stagingBuffer, textureImage, static_cast<u32>(texWidth), static_cast<u32>(texHeight), bufferCopyRegions.size(), bufferCopyRegions.data());
@@ -1900,7 +2285,7 @@ agl::aglTexture::aglTexture(string path, VkFormat format)
 	vkDestroy(vkDestroyBuffer, stagingBuffer);
 	vkDestroy(vkFreeMemory, stagingBufferMemory);
 
-	textureImageView = CreateImageView(textureImage, format, VK_IMAGE_ASPECT_COLOR_BIT,isCb);
+	textureImageView = CreateImageView(textureImage, format, VK_IMAGE_ASPECT_COLOR_BIT,false);
 	CreateTextureSampler();
 }
 
@@ -2056,6 +2441,29 @@ agl::aglTexture::aglTexture(aglShader* shader, aglTextureCreationInfo info)
 
 }
 
+agl::aglTexture::aglTexture(aglTextureCreationInfo info)
+{
+
+	VkDeviceSize imageSize = info.width * info.height * 4;
+
+	width = info.width;
+	height = info.height;
+	channels = info.channels;
+
+	VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
+
+	std::vector<VkBufferImageCopy> bufferCopyRegions;
+	uint32_t offset = 0;
+
+	CreateVulkanImage(width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, false);
+
+	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, true);
+	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, true);
+
+	textureImageView = CreateImageView(textureImage, format, VK_IMAGE_ASPECT_COLOR_BIT, false);
+	CreateTextureSampler();
+}
+
 VkImageView agl::aglTexture::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
                                              bool isCubemap)
 {
@@ -2205,6 +2613,90 @@ void agl::aglMesh::Draw(VkCommandBuffer commandBuffer, u32 imageIndex)
 	//vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
 	vkCmdDrawIndexed(commandBuffer, static_cast<u32>(indices.size()), 1, 0, 0, 0);
+}
+
+void agl::aglMesh::ExportAsCode(aglMesh* mesh, string path)
+{
+	bool success = false;
+
+#ifndef TEXT_BYTES_PER_LINE
+#define TEXT_BYTES_PER_LINE     20
+#endif
+
+	// NOTE: Text data buffer size is fixed to 64MB
+	char* txtData = (char*) calloc(64 * 1024 * 1024, sizeof(char));  // 64 MB
+
+	int byteCount = 0;
+	byteCount += sprintf(txtData + byteCount, "////////////////////////////////////////////////////////////////////////////////////////\n");
+	byteCount += sprintf(txtData + byteCount, "//                                                                                    //\n");
+	byteCount += sprintf(txtData + byteCount, "// MeshAsCode exporter v1.0 - Mesh vertex data exported as arrays                     //\n");
+	byteCount += sprintf(txtData + byteCount, "//                                                                                    //\n");
+	byteCount += sprintf(txtData + byteCount, "// more info and bugs-report:  github.com/raysan5/raylib                              //\n");
+	byteCount += sprintf(txtData + byteCount, "// feedback and support:       ray[at]raylib.com                                      //\n");
+	byteCount += sprintf(txtData + byteCount, "//                                                                                    //\n");
+	byteCount += sprintf(txtData + byteCount, "// Copyright (c) 2023 Ramon Santamaria (@raysan5)                                     //\n");
+	byteCount += sprintf(txtData + byteCount, "//                                                                                    //\n");
+	byteCount += sprintf(txtData + byteCount, "////////////////////////////////////////////////////////////////////////////////////////\n\n");
+
+	// Get file name from path and convert variable name to uppercase
+	char varFileName[256] = { 0 };
+	strcpy(varFileName, GetFileNameWithoutExt(path).c_str());
+	for (int i = 0; varFileName[i] != '\0'; i++) if ((varFileName[i] >= 'a') && (varFileName[i] <= 'z')) { varFileName[i] = varFileName[i] - 32; }
+
+
+	vector<float> vertices;
+	vector<float> normals;
+	vector<float> texCoords;
+
+	for (auto vertex : mesh->vertices)
+	{
+		for (int i = 0; i < 3; ++i)
+		{
+			vertices.push_back(vertex.position[i]);
+		}
+		for (int i = 0; i < 3; ++i)
+		{
+			normals.push_back(vertex.normal[i]);
+		}
+		for (int i = 0; i < 2; ++i)
+		{
+			texCoords.push_back(vertex.texCoord[i]);
+		}
+	}
+
+	float indicesCount = mesh->indices.size();
+
+
+	// Add image information
+	byteCount += sprintf(txtData + byteCount, "// Mesh basic information\n");
+	byteCount += sprintf(txtData + byteCount, "#define %s_VERTEX_COUNT    %i\n", varFileName, static_cast<int>(mesh->vertices.size()));
+	byteCount += sprintf(txtData + byteCount, "#define %s_TRIANGLE_COUNT   %i\n\n", varFileName, static_cast<int>(mesh->indices.size()/3));
+
+	byteCount += sprintf(txtData + byteCount, "static float %s_VERTEX_DATA[%i] = { ", varFileName, static_cast<int>(mesh->vertices.size() * 3));
+	for (int i = 0; i < mesh->vertices.size() * 3 - 1; i++) byteCount += sprintf(txtData + byteCount, ((i % TEXT_BYTES_PER_LINE == 0) ? "%.3ff,\n" : "%.3ff, "), vertices[i]);
+	byteCount += sprintf(txtData + byteCount, "%.3ff };\n\n", vertices[mesh->vertices.size() * 3 - 1]);
+
+	byteCount += sprintf(txtData + byteCount, "static float %s_NORMAL_DATA[%i] = { ", varFileName, static_cast<int>(mesh->vertices.size() * 3));
+	for (int i = 0; i < mesh->vertices.size() * 3 - 1; i++) byteCount += sprintf(txtData + byteCount, ((i % TEXT_BYTES_PER_LINE == 0) ? "%.3ff,\n" : "%.3ff, "), normals[i]);
+	byteCount += sprintf(txtData + byteCount, "%.3ff };\n\n", normals[mesh->vertices.size() * 3 - 1]);
+
+	byteCount += sprintf(txtData + byteCount, "static float %s_TEXCOORD_DATA[%i] = { ", varFileName, static_cast<int>(mesh->vertices.size() * 2));
+	for (int i = 0; i < mesh->vertices.size() * 2 - 1; i++) byteCount += sprintf(txtData + byteCount, ((i % TEXT_BYTES_PER_LINE == 0) ? "%.3ff,\n" : "%.3ff, "), texCoords[i]);
+	byteCount += sprintf(txtData + byteCount, "%.3ff };\n\n", texCoords[mesh->vertices.size() * 2 - 1]);
+
+	byteCount += sprintf(txtData + byteCount, "static float %s_INDEX_DATA[%i] = { ", varFileName, static_cast<int>(mesh->indices.size()));
+	for (int i = 0; i < mesh->indices.size() - 1; i++) byteCount += sprintf(txtData + byteCount, ((i % TEXT_BYTES_PER_LINE == 0) ? "%i,\n" : "%i, "), mesh->indices[i]);
+	byteCount += sprintf(txtData + byteCount, "%.3ff };\n\n", mesh->indices[mesh->indices.size() - 1]);
+
+	//-----------------------------------------------------------------------------------------
+
+	// NOTE: Text data size exported is determined by '\0' (NULL) character
+	success = WriteString(path, txtData);
+
+	free(txtData);
+
+	//if (success != 0) TRACELOG(LOG_INFO, "FILEIO: [%s] Image as code exported successfully", fileName);
+	//else TRACELOG(LOG_WARNING, "FILEIO: [%s] Failed to export image as code", fileName);
 }
 
 void agl::aglMesh::Setup()
@@ -2387,6 +2879,128 @@ vector<agl::aglTextureRef> agl::aglModel::LoadMaterialTextures(aiMaterial* mater
 	}
 
 	return textures;
+}
+
+
+agl::aglUniformBuffer::aglUniformBuffer(aglShader* shader, aglBufferSettings settings)
+{
+	this->shader = shader;
+	this->settings = settings;
+
+	// UB creation
+
+
+	VkDeviceSize bufferSize = settings.bufferSize;
+
+	uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+	ubMemory.resize(MAX_FRAMES_IN_FLIGHT);
+	mappedUbs.resize(MAX_FRAMES_IN_FLIGHT);
+
+	VkDevice dev = agl::GetDevice();
+
+	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+	{
+		CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+					 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+					 uniformBuffers[i], ubMemory[i]);
+
+		vkMapMemory(dev, ubMemory[i], 0, bufferSize, 0, &mappedUbs[i]);
+	}
+
+
+	if (settings.binding >= 32)
+	{
+		throw std::exception("Invalid binding.");
+	}
+
+}
+
+
+void agl::aglUniformBuffer::Destroy()
+{
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		vkDestroyBuffer(GetDevice(), uniformBuffers[i], nullptr);
+		vkFreeMemory(GetDevice(), ubMemory[i], nullptr);
+	}
+
+
+
+}
+
+void agl::aglUniformBuffer::AttachToShader(aglShader* shader, u32 bindingIdx)
+{
+
+	if (bindingIdx == -1)
+	{
+		throw new std::exception("Binding index is less than one. Invalid binding requested.");
+	}
+
+	VkDescriptorSetLayoutBinding uboLayoutBinding{};
+	uboLayoutBinding.binding = bindingIdx;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.stageFlags = settings.flags;
+	uboLayoutBinding.pImmutableSamplers = nullptr;
+
+	VkDescriptorPoolSize uboPoolSize{};
+
+	uboPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboPoolSize.descriptorCount = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
+
+	shader->AttachDescriptorPool(uboPoolSize, bindingIdx);
+
+	CreateBinding(uboLayoutBinding, bindingIdx);
+
+	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+	{
+		auto bufferInfo = new VkDescriptorBufferInfo;
+		bufferInfo->buffer = GetUniformBuffer(i);
+		bufferInfo->offset = 0;
+		bufferInfo->range = settings.bufferSize;
+
+		VkWriteDescriptorSet* descriptorWrite;
+
+
+		descriptorWrite = shader->CreateDescriptorSetWrite(i, bindingIdx);
+		descriptorWrite->descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrite->pBufferInfo = bufferInfo;
+
+		shader->AttachDescriptorWrite(descriptorWrite, i, bindingIdx);
+	}
+
+
+
+}
+
+
+void agl::aglUniformBuffer::CreateBinding(VkDescriptorSetLayoutBinding bind, int bindingIdx)
+{
+	binding = bind;
+	shader->AttachDescriptorSetLayout(binding, bindingIdx);
+}
+
+
+void agl::aglUniformBuffer::CreatePoolSize(VkDescriptorPoolSize poolSz, int bindingIdx)
+{
+	poolSize = poolSz;
+	shader->AttachDescriptorPool(poolSize, bindingIdx);
+}
+
+
+VkBuffer agl::aglUniformBuffer::GetUniformBuffer(int frame)
+{
+	return uniformBuffers[frame];
+}
+
+
+void agl::aglUniformBuffer::Update(void* data, size_t dataSize)
+{
+	int bufferSize = settings.bufferSize;
+
+
+	memcpy(mappedUbs[currentFrame], data, dataSize);
+
 }
 
 void agl::UpdateFrame()

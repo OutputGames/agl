@@ -5,6 +5,8 @@
 #include <map>
 #include <optional>
 
+#include "agl.hpp"
+#include "agl.hpp"
 #include "re.hpp"
 
 
@@ -77,17 +79,13 @@ struct AURORA_API agl
 	inline static std::vector<VkSemaphore> imageAvailableSemaphores;
 	inline static std::vector<VkSemaphore> renderFinishedSemaphores;
 	inline static std::vector<VkFence> inFlightFences;
-	inline static u32 currentFrame = 0;
 	inline static u32 currentImage;
 	inline static bool closeWindow = false;
 	IS float deltaTime = 1.0f / 60.0f;
 	IS float frameCount = 1;
 
 
-	static VkDevice GetDevice()
-	{
-		return device;
-	}
+	static VkDevice GetDevice();
 
 	struct aglShader;
 	struct aglTexture;
@@ -95,7 +93,7 @@ struct AURORA_API agl
 	struct aglFramebuffer;
 	struct aglSwapchain;
 
-	struct SurfaceDetails
+	struct AURORA_API SurfaceDetails
 	{
 		aglCommandBuffer* commandBuffer;
 		aglFramebuffer* framebuffer;
@@ -108,7 +106,13 @@ struct AURORA_API agl
 		void Create();
 	};
 
-	inline static SurfaceDetails* baseSurface = nullptr;
+private:
+	IS SurfaceDetails* baseSurface;
+	IS u32 currentFrame;
+public:
+
+	static SurfaceDetails* GetSurfaceDetails();
+	static u32 GetCurrentImage();
 
 	static void CreateInstance();
 	static void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
@@ -119,6 +123,9 @@ struct AURORA_API agl
 	static void CopyImageToImage(VkImage base, VkImage sub, int layer, int layerCount, int width, int height, bool endCmd);
 	static VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
 	                                    VkFormatFeatureFlags features);
+
+	static vec2 GetMainFramebufferSize();
+
 	static VkFormat FindDepthFormat();
 	static bool HasStencilComponent(VkFormat format);
 	static void PresentFrame(u32 imageIndex);
@@ -148,29 +155,7 @@ struct AURORA_API agl
 		func(device, object, nullptr);
 	}
 
-	enum aglShaderType
-	{
-		VERTEX = VK_SHADER_STAGE_VERTEX_BIT,
-		FRAGMENT = VK_SHADER_STAGE_FRAGMENT_BIT,
-		GEOMETRY = VK_SHADER_STAGE_GEOMETRY_BIT,
-		COMPUTE = VK_SHADER_STAGE_COMPUTE_BIT
-	};
 
-
-	struct aglShaderLevel
-	{
-		VkShaderModule module;
-
-		aglShaderLevel(std::string code, aglShaderType type, aglShader* parent);
-
-		VkPipelineShaderStageCreateInfo stageInfo;
-
-		void Destroy();
-
-
-		friend aglShader;
-		aglShader* parent;
-	};
 
 	enum aglDescriptorType
 	{
@@ -209,14 +194,30 @@ struct AURORA_API agl
 		u32 count;
 
 		aglDescriptorType type;
+
+		aglTexture* texture = nullptr;
 	};
 
-	struct aglTexturePort : aglDescriptorPort
+	struct aglBufferSettings
 	{
-		aglTexture* texture;
+		VkShaderStageFlags flags;
+
+		int bufferSize;
+
+		std::string name;
+		u32 binding;
+
+		aglBufferSettings(VkShaderStageFlags flags, int bufferSize)
+		{
+			this->flags = flags;
+			this->bufferSize = bufferSize;
+			name = "";
+			binding = 0;
+		}
+
 	};
 
-	struct aglCommandBuffer
+	struct AURORA_API aglCommandBuffer
 	{
 		VkCommandPool commandPool;
 		std::vector<VkCommandBuffer> commandBuffers;
@@ -302,7 +303,7 @@ struct AURORA_API agl
 		aglRenderQueue* renderQueue;
 	};
 
-	struct aglSwapchain
+	struct AURORA_API aglSwapchain
 	{
 		VkSwapchainKHR swapChain;
 		aglFramebuffer* fbo;
@@ -320,7 +321,7 @@ struct AURORA_API agl
 		VkImageUsageFlags usage;
 	};
 
-	struct aglFramebuffer
+	struct AURORA_API aglFramebuffer
 	{
 		std::vector<VkImage> images;
 		std::vector<VkImageView> imageViews;
@@ -361,7 +362,6 @@ struct AURORA_API agl
 		aglRenderPass* renderPass;
 	};
 
-	template <typename T>
 	struct aglUniformBuffer;
 	struct PostProcessingSettings;
 
@@ -384,34 +384,64 @@ struct AURORA_API agl
 		IS std::vector<aglShader*> loadedShaders;
 	};
 
+	enum aglShaderType
+	{
+		VERTEX = VK_SHADER_STAGE_VERTEX_BIT,
+		FRAGMENT = VK_SHADER_STAGE_FRAGMENT_BIT,
+		GEOMETRY = VK_SHADER_STAGE_GEOMETRY_BIT,
+		COMPUTE = VK_SHADER_STAGE_COMPUTE_BIT
+	};
+
+
+	struct aglShaderLevel
+	{
+		VkShaderModule module;
+
+		aglShaderLevel(std::string code, aglShaderType type, aglShader* parent);
+
+		VkPipelineShaderStageCreateInfo stageInfo;
+
+		void Destroy();
+
+
+		friend aglShader;
+		aglShader* parent;
+	};
+
+	struct aglShaderSettings
+	{
+		struct SettingPaths
+		{
+			std::string vertexPath;
+			std::string fragmentPath;
+			std::string geometryPath;
+			std::string computePath;
+		} paths;
+
+		VkCullModeFlags cullFlags = VK_CULL_MODE_BACK_BIT;
+		VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		VkCompareOp depthCompare = VK_COMPARE_OP_LESS;
+		aglRenderPass* renderPass = baseSurface->framebuffer->renderPass;
+	};
+
 	struct AURORA_API aglShader
 	{
 
 		u32 id;
 
-		aglShaderLevel* vertModule;
-		aglShaderLevel* fragModule;
+		aglShaderLevel* vertModule = nullptr;
+		aglShaderLevel* fragModule = nullptr;
+		aglShaderLevel* compModule=nullptr;
 
-		std::string vertexCode, fragmentCode;
+		std::string vertexCode, fragmentCode, computeCode;
 
 		friend aglShaderLevel;
 
 		void Setup();
-		void Create();
-
-		struct aglShaderSettings
-		{
-			std::string vertexPath;
-			std::string fragmentPath;
-
-			VkCullModeFlags cullFlags = VK_CULL_MODE_BACK_BIT;
-			VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-			VkCompareOp depthCompare = VK_COMPARE_OP_LESS;
-			aglRenderPass* renderPass=baseSurface->framebuffer->renderPass;
-		};
+		virtual void Create();
 
 		aglShaderSettings settings;
-		aglUniformBuffer<PostProcessingSettings>* ppBuffer = nullptr;
+		aglUniformBuffer* ppBuffer = nullptr;
 		aglPushConstant* pushConstant=nullptr;
 
 		aglShader(aglShaderSettings settings);
@@ -421,13 +451,13 @@ struct AURORA_API agl
 	public:
 		u32 GetBindingByName(std::string n);
 
-		void Destroy();
+		virtual void Destroy();
 
 		void Recreate();
 
 		std::vector<VkDescriptorPoolSize> poolSizes;
 
-		VkWriteDescriptorSet* CreateDescriptorSetWrite(int frame, int binding);
+		static VkWriteDescriptorSet* CreateDescriptorSetWrite(int frame, int binding);
 
 		void BindGraphicsPipeline(VkCommandBuffer commandBuffer);
 		VkPipelineLayout GetPipelineLayout();
@@ -441,6 +471,7 @@ struct AURORA_API agl
 		void AttachDescriptorWrites(std::vector<VkWriteDescriptorSet*> writes, int frame);
 
 		void CreateGraphicsPipeline();
+		void CreateComputePipeline();
 		void CreateDescriptorSetLayout();
 		void CreateDescriptorPool();
 		void CreateDescriptorSet();
@@ -450,16 +481,80 @@ struct AURORA_API agl
 		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 		VkPipelineLayout pipelineLayout;
 		VkDescriptorSetLayout descriptorSetLayout;
-		VkPipeline graphicsPipeline;
+		VkPipeline mainPipeline;
 		VkDescriptorPool descriptorPool;
 		std::vector<aglDescriptorPort*> ports;
 
+
+
 		bool setup=false;
 
-		void AttachTexture(aglTexture* texture, u32 binding = -1);
+		virtual void AttachTexture(aglTexture* texture, u32 binding = -1);
 	};
 
+	struct AURORA_API aglComputeShader : aglShader
+	{
 
+		aglComputeShader(aglShaderSettings settings);
+
+		static void BeginDispatchField();
+		void Dispatch(u32 imageIndex, vec3 groupCount);
+		static void EndDispatchField();
+
+		void Create() override;
+		void Destroy() override;
+		void AttachTexture(aglTexture* texture, u32 binding) override;
+
+		IS VkQueue computeQueue;
+		IS std::vector<VkCommandBuffer> computeCommandBuffers;
+		IS std::vector<VkSemaphore> computeFinishedSemaphores;
+		IS std::vector<VkFence> computeInFlightFences;
+		IS bool AreComputeShadersUsed=false;
+		IS bool ObjectsCreated = false;
+
+		void CreateCommandBuffers();
+		void CreateSyncObjects();
+
+		static std::vector<VkSemaphore> submittedSemaphores;
+	};
+
+	struct AURORA_API aglStorageBuffer
+	{
+
+		aglStorageBuffer(aglBufferSettings settings);
+
+		void Destroy();
+
+		void Update(void* data, size_t dataSize);
+		void* GetData();
+
+		void AttachToShader(aglShader* shader, u32 bindingIdx);
+
+		unsigned ubo;
+
+
+
+		void CreateBinding(VkDescriptorSetLayoutBinding bind, int bindingIdx);
+
+		void CreatePoolSize(VkDescriptorPoolSize poolSz, int bindingIdx);
+
+		VkBuffer GetBuffer(int frame);
+
+		VkDescriptorSetLayout setLayout;
+		std::vector<VkBuffer> buffers;
+		std::vector<VkDeviceMemory> bufferMemory;
+		std::vector<void*> mappedBuffers;
+
+		VkDescriptorSetLayoutBinding binding;
+		VkDescriptorPoolSize poolSize;
+
+
+
+		aglShader* shader;
+
+		aglBufferSettings settings={0,0};
+
+	};
 
 	// Combined variables
 
@@ -527,6 +622,7 @@ struct AURORA_API agl
 	{
 		aglTexture(std::string path, VkFormat format);
 		aglTexture(aglShader* shader, aglTextureCreationInfo info);
+		aglTexture(aglTextureCreationInfo info);
 
 		aglTexture(aglTextureRef ref) : aglTexture(ref.path, VK_FORMAT_R8G8B8A8_SRGB)
 		{
@@ -594,6 +690,7 @@ struct AURORA_API agl
 
 		void Draw(VkCommandBuffer commandBuffer, u32 imageIndex);
 
+		static void ExportAsCode(aglMesh* mesh, std::string path);
 
 
 		std::vector<aglTexture> textures;
@@ -617,129 +714,25 @@ struct AURORA_API agl
 		std::vector<aglTextureRef> LoadMaterialTextures(aiMaterial* material, aiTextureType type, std::string path);
 	};
 
-	struct aglUniformBufferSettings
+	struct AURORA_API aglUniformBuffer
 	{
-		VkShaderStageFlags flags;
+		aglUniformBuffer(aglShader* shader, aglBufferSettings settings);
 
-		std::string name;
-		u32 binding;
+		void Destroy();
 
-	};
+		void Update(void* data, size_t dataSize);
 
-	template <typename T>
-	struct aglUniformBuffer
-	{
-		aglUniformBuffer(aglShader* shader, aglUniformBufferSettings settings)
-		{
-			this->shader = shader;
-			this->settings = settings;
-
-			// UB creation
-
-
-			VkDeviceSize bufferSize = sizeof(T);
-
-			uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-			ubMemory.resize(MAX_FRAMES_IN_FLIGHT);
-			mappedUbs.resize(MAX_FRAMES_IN_FLIGHT);
-
-			for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
-			{
-				CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-				             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-				             uniformBuffers[i], ubMemory[i]);
-
-				vkMapMemory(GetDevice(), ubMemory[i], 0, bufferSize, 0, &mappedUbs[i]);
-			}
-
-
-			if (settings.binding >= 32)
-			{
-				throw std::exception("Invalid binding.");
-			}
-
-		}
-
-		void Destroy()
-		{
-			for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-			{
-				vkDestroyBuffer(GetDevice(), uniformBuffers[i], nullptr);
-				vkFreeMemory(GetDevice(), ubMemory[i], nullptr);
-			}
-
-
-
-		}
-
-		void Update(T data)
-		{
-			memcpy(mappedUbs[currentFrame], &data, sizeof(data));
-
-		}
-
-		void AttachToShader(aglShader* shader, u32 bindingIdx)
-		{
-
-			if (bindingIdx == -1)
-			{
-				throw new std::exception("Binding index is less than one. Invalid binding requested.");
-			}
-
-			VkDescriptorSetLayoutBinding uboLayoutBinding{};
-			uboLayoutBinding.binding = bindingIdx;
-			uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			uboLayoutBinding.descriptorCount = 1;
-			uboLayoutBinding.stageFlags = settings.flags;
-			uboLayoutBinding.pImmutableSamplers = nullptr;
-
-			VkDescriptorPoolSize uboPoolSize{};
-
-			uboPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			uboPoolSize.descriptorCount = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
-
-			shader->AttachDescriptorPool(uboPoolSize,bindingIdx);
-
-			CreateBinding(uboLayoutBinding, bindingIdx);
-
-			for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
-			{
-				auto bufferInfo = new VkDescriptorBufferInfo;
-				bufferInfo->buffer = GetUniformBuffer(i);
-				bufferInfo->offset = 0;
-				bufferInfo->range = sizeof(T);
-
-				VkWriteDescriptorSet* descriptorWrite;
-
-
-				descriptorWrite = shader->CreateDescriptorSetWrite(i, bindingIdx);
-				descriptorWrite->descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-				descriptorWrite->pBufferInfo = bufferInfo;
-
-				shader->AttachDescriptorWrite(descriptorWrite, i, bindingIdx);
-			}
-
-
-
-		}
+		void AttachToShader(aglShader* shader, u32 bindingIdx);
 
 		unsigned ubo;
 
 
 
-		void CreateBinding(VkDescriptorSetLayoutBinding bind, int bindingIdx)
-		{
-			binding = bind;
-			shader->AttachDescriptorSetLayout(binding, bindingIdx);
-		}
+		void CreateBinding(VkDescriptorSetLayoutBinding bind, int bindingIdx);
 
-		void CreatePoolSize(VkDescriptorPoolSize poolSz, int bindingIdx)
-		{
-			poolSize = poolSz;
-			shader->AttachDescriptorPool(poolSize, bindingIdx);
-		}
+		void CreatePoolSize(VkDescriptorPoolSize poolSz, int bindingIdx);
 
-		VkBuffer GetUniformBuffer(int frame) { return uniformBuffers[frame]; }
+		VkBuffer GetUniformBuffer(int frame);
 
 		VkDescriptorSetLayout setLayout;
 		std::vector<VkBuffer> uniformBuffers;
@@ -753,7 +746,7 @@ struct AURORA_API agl
 
 		aglShader* shader;
 
-		aglUniformBufferSettings settings;
+		aglBufferSettings settings = {0,0};
 	};
 
 	inline static struct PostProcessingSettings
@@ -766,5 +759,7 @@ struct AURORA_API agl
 	static void Destroy();
 };
 
- // AGL_HPP
+
+// AGL_HPP
+
 #endif

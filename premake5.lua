@@ -6,6 +6,8 @@ project "AuroraGraphicsLibrary"
    compileas "C++"
    targetdir "%{_OPTIONS['corelocation']}/bin/%{cfg.buildcfg}"
 
+   defines {"_CRT_SECURE_NO_WARNINGS"}
+
    files {
        "include/**",
         "resources/shaders/**",
