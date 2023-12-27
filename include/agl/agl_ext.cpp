@@ -4,14 +4,15 @@
 #include "ext.hpp"
 #include "maths.hpp"
 
-#define PAR_SHAPES_IMPLEMENTATION
-#include "par_shapes.h"
 #include "aurora/utils/fs.hpp"
 
 #include "imgui/imgui.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_vulkan.h"
 #include "agl/models/sphere.hpp"
+
+#define PAR_SHAPES_IMPLEMENTATION
+#include "par_shapes.h"
 
 using namespace std;
 
@@ -215,7 +216,8 @@ void aglPrimitives::Install()
 	vector<aglPrimitiveType> primitives = {
 		aglPrimitiveType::CUBE,
 		aglPrimitiveType::SPHERE,
-		aglPrimitiveType::QUAD
+		aglPrimitiveType::QUAD,
+		aglPrimitiveType::CAPSULE,
 	};
 
 	/*
@@ -226,6 +228,7 @@ void aglPrimitives::Install()
 		agl::aglMesh::ExportAsCode(sphereMesh, "include/agl/models/sphere.hpp");
 	}
 	*/
+
 
 	for (auto primitive : primitives)
 	{
@@ -240,51 +243,14 @@ void aglPrimitives::Install()
 			prims[type] = GenerateQuad();
 			break;
 		case SPHERE:
-
-
-			vector<agl::aglVertex> vertices(SPHERE_VERTEX_COUNT);
-			vector<unsigned> indices(SPHERE_TRIANGLE_COUNT*3);
-
-			for (int i = 0; i < SPHERE_VERTEX_COUNT; ++i)
-			{
-
-				float p[3];
-				for (int j = 0; j < 3; ++j)
-				{
-					p[j] = SPHERE_VERTEX_DATA[(i * 3) + j];
-				}
-
-				float n[3];
-				for (int j = 0; j < 3; ++j)
-				{
-					n[j] = SPHERE_NORMAL_DATA[(i * 3) + j];
-				}
-
-				float t[2];
-				for (int j = 0; j < 2; ++j)
-				{
-					t[j] = SPHERE_TEXCOORD_DATA[(i * 2) + j];
-				}
-
-				vertices[i].position = make_vec3(p);
-				vertices[i].normal = make_vec3(n);
-				vertices[i].texCoord = make_vec2(t);
-			}
-
-			for (int i = 0; i < SPHERE_TRIANGLE_COUNT*3; ++i)
-			{
-				indices[i] = SPHERE_INDEX_DATA[i];
-			}
-
-			
-
-
-			//prims[type] = GenerateCube(1, 1, 1);
-
-			prims[type] = new agl::aglMesh(agl::aglMeshCreationData{vertices, indices});
+			prims[type] = GenerateSphere(1,3,3);
+			break;
+		case CAPSULE:
+			prims[type] = GenerateCapsule(2, 1);
 			break;
 		}
 
+		prims[type]->path = GetPrimNames()[type];
 	}
 }
 
@@ -293,6 +259,23 @@ void aglPrimitives::DrawPrimitive(aglPrimitiveType type, VkCommandBuffer cmdBuf)
 	agl::aglMesh* mesh = prims[type];
 
 	mesh->Draw(cmdBuf, agl::GetCurrentImage());
+}
+
+std::map<aglPrimitives::aglPrimitiveType, agl::aglMesh*> aglPrimitives::GetPrims()
+{
+	return prims;
+}
+
+std::vector<std::string> aglPrimitives::GetPrimNames()
+{
+	vector<string> primNames = {
+	"PRIM_CUBE",
+	"PRIM_SPHERE",
+	"PRIM_QUAD",
+		"PRIM_CAPSULE"
+	};
+
+	return primNames;
 }
 
 agl::aglMesh* aglPrimitives::GenerateCube(float width, float height, float length)
@@ -433,6 +416,7 @@ agl::aglMesh* aglPrimitives::GenerateCube(float width, float height, float lengt
 
 agl::aglMesh* aglPrimitives::GenerateSphere(float radius, int rings, int slices)
 {
+	/*
 	if (rings >= 3 && slices >= 3)
 	{
 		par_shapes_mesh* sphere = par_shapes_create_parametric_sphere(slices, rings);
@@ -473,6 +457,41 @@ agl::aglMesh* aglPrimitives::GenerateSphere(float radius, int rings, int slices)
 		return mesh;
 	}
 	return nullptr;
+	*/
+
+	vector<agl::aglVertex> vertices(SPHERE_VERTEX_COUNT);
+	vector<unsigned> indices(SPHERE_TRIANGLE_COUNT * 3);
+	for (int i = 0; i < SPHERE_VERTEX_COUNT; ++i)
+	{
+
+		float p[3];
+		for (int j = 0; j < 3; ++j)
+		{
+			p[j] = SPHERE_VERTEX_DATA[(i * 3) + j];
+		}
+
+		float n[3];
+		for (int j = 0; j < 3; ++j)
+		{
+			n[j] = SPHERE_NORMAL_DATA[(i * 3) + j];
+		}
+
+		float t[2];
+		for (int j = 0; j < 2; ++j)
+		{
+			t[j] = SPHERE_TEXCOORD_DATA[(i * 2) + j];
+		}
+
+		vertices[i].position = make_vec3(p);
+		vertices[i].normal = make_vec3(n);
+		vertices[i].texCoord = make_vec2(t);
+	}
+	for (int i = 0; i < SPHERE_TRIANGLE_COUNT * 3; ++i)
+	{
+		indices[i] = SPHERE_INDEX_DATA[i];
+	}
+
+	return new agl::aglMesh(agl::aglMeshCreationData{ vertices, indices });
 }
 
 agl::aglMesh* aglPrimitives::GenerateQuad()
@@ -489,4 +508,71 @@ agl::aglMesh* aglPrimitives::GenerateQuad()
 	};
 
 	return new agl::aglMesh({ verts,indices });
+}
+
+agl::aglMesh* aglPrimitives::GenerateCapsule(float height, float radius)
+{
+	par_shapes_mesh* mesh = par_shapes_create_cylinder(32, 8);
+	par_shapes_scale(mesh, radius, radius, height);
+
+	{
+		par_shapes_mesh* sphere = par_shapes_create_parametric_sphere(32, 8);
+		par_shapes_scale(sphere, radius, radius, radius);
+		par_shapes_translate(sphere, 0, 0, height);
+
+		par_shapes_merge_and_free(mesh, sphere);
+	}
+
+	{
+		par_shapes_mesh* sphere = par_shapes_create_parametric_sphere(32, 8);
+		par_shapes_scale(sphere, radius, radius, radius);
+
+		par_shapes_merge_and_free(mesh, sphere);
+	}
+
+	par_shapes_compute_normals(mesh);
+
+	u32 num_vertices = mesh->npoints * 3;
+	u32 num_indices = mesh->ntriangles * 3;
+
+	vector<agl::aglVertex> vertices;
+	vector<u32> indices;
+
+	vertices.resize(num_vertices);
+	indices.resize(num_indices);
+
+	for (int i = 0; i < num_indices; ++i)
+	{
+		indices[i] = mesh->triangles[i];
+	}
+
+	for (int i = 0; i < num_vertices*3; i += 3)
+	{
+		agl::aglVertex v{};
+
+		float pos[3] = { mesh->points[i], mesh->points[i + 1], mesh->points[i + 2] };
+		v.position = make_vec3(pos);
+
+		float norm[3] = { mesh->normals[i], mesh->normals[i + 1], mesh->normals[i + 2] };
+		v.normal = make_vec3(norm);
+
+		vertices[i/3] = v;
+	}
+
+	for (int i = 0; i < num_vertices * 2; i += 2)
+	{
+		agl::aglVertex v = vertices[i / 2];
+
+		float tex[2] = { mesh->tcoords[i], mesh->tcoords[i + 1]};
+		v.texCoord = make_vec2(tex);
+
+		vertices[i / 2] = v;
+	}
+
+
+	agl::aglMeshCreationData data = {vertices, indices};
+
+	agl::aglMesh* aglMesh = new agl::aglMesh(data);
+
+	return aglMesh;
 }

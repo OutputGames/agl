@@ -44,9 +44,9 @@ AURORA_API struct agl_ext
 	}
 
 	template <typename T>
-	static void InstallExtension(T* extension)
+	static void InstallExtension()
 	{
-
+		T* extension = new T();
 		installedExtensions.insert({ extension->name, extension });
 		extension->Install();
 	}
@@ -74,22 +74,28 @@ struct AURORA_API aglPrimitives : agl_ext::aglExtension
 	{
 		CUBE = 0,
 		SPHERE,
-		QUAD
+		QUAD,
+		CAPSULE
 	};
 
 	std::string name = AGL_EXTENSION_PRIMITIVES_LAYER_NAME;
-
-	inline static std::map<aglPrimitiveType,agl::aglMesh*> prims;
 
 	void Install() override;
 
 	void DrawPrimitive(aglPrimitiveType type, VkCommandBuffer cmdBuf);
 
+	static std::map<aglPrimitiveType, agl::aglMesh*> GetPrims();
+
+	static std::vector<std::string> GetPrimNames();
+
 private:
+
+	inline static std::map<aglPrimitiveType, agl::aglMesh*> prims;
 
 	static agl::aglMesh* GenerateCube(float width,  float height, float length);
 	static agl::aglMesh* GenerateSphere(float radius, int rings, int slices);
 	static agl::aglMesh* GenerateQuad();
+	static agl::aglMesh* GenerateCapsule(float height, float radius);
 
 };
 

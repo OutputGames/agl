@@ -269,7 +269,7 @@ void agl::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 	baseSurface->commandBuffer->EndSingleTimeCommands(commandBuffer);
 }
 
-void agl::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, int layerCount, bool endCmd)
+void agl::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, int layerCount, bool endCmd, u32 mipCount)
 {
 	VkCommandBuffer vkCommandBuffer = baseSurface->commandBuffer->BeginSingleTimeCommands();
 
@@ -280,7 +280,7 @@ void agl::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout ol
 	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.image = image;
-	barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0,1,0,1 };
+	barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0,mipCount,0,1 };
 	barrier.subresourceRange.layerCount = layerCount;
 
 	if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
@@ -395,7 +395,7 @@ void agl::CopyBufferToImage(VkBuffer buffer, VkImage image, u32 width, u32 heigh
 	baseSurface->commandBuffer->EndSingleTimeCommands(vkCommandBuffer);
 }
 
-void agl::CopyImageToImage(VkImage base, VkImage sub, int layer, int layerCount, int width, int height, bool endCmd)
+void agl::CopyImageToImage(VkImage base, VkImage sub, int layer, int layerCount, int width, int height, bool endCmd, int srcMip, int dstMip)
 {
 
 	VkCommandBuffer cmdBuf = baseSurface->commandBuffer->BeginSingleTimeCommands();
@@ -405,13 +405,13 @@ void agl::CopyImageToImage(VkImage base, VkImage sub, int layer, int layerCount,
 
 	copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	copyRegion.srcSubresource.baseArrayLayer = 0;
-	copyRegion.srcSubresource.mipLevel = 0;
+	copyRegion.srcSubresource.mipLevel = srcMip;
 	copyRegion.srcSubresource.layerCount = layerCount;
 	copyRegion.srcOffset = { 0, 0, 0 };
 
 	copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	copyRegion.dstSubresource.baseArrayLayer = layer;
-	copyRegion.dstSubresource.mipLevel = 0;
+	copyRegion.dstSubresource.mipLevel = dstMip;
 	copyRegion.dstSubresource.layerCount = layerCount;
 	copyRegion.dstOffset = { 0, 0, 0 };
 
@@ -455,6 +455,12 @@ VkFormat agl::FindSupportedFormat(const vector<VkFormat>& candidates, VkImageTil
 
 vec2 agl::GetMainFramebufferSize()
 {
+
+	if (agl::baseSurface->framebuffer->extent.width == 0 || agl::baseSurface->framebuffer->extent.height == 0)
+	{
+		return vec2{ 1,1 };
+	}
+
 	return aglMath::ConvertExtents(agl::baseSurface->framebuffer->extent);
 }
 
@@ -635,6 +641,28 @@ void agl::PickPhysicalDevice()
 	if (physicalDevice == VK_NULL_HANDLE)
 	{
 		throw std::runtime_error("Failed to find a suitable GPU.");
+	}
+
+	VkPhysicalDeviceProperties properties = {};
+
+	vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+
+	std::cout << "Found a GPU! Listing properties now." << endl;
+
+	string dimensions[3] = {
+		"X","Y","Z"
+	};
+
+	std::cout << "\tMax Compute Work Group Count " << endl;
+	for (int i = 0; i < 3; ++i)
+	{
+		std::cout << "\t[" << dimensions[i] << "]: " << properties.limits.maxComputeWorkGroupCount[i] << endl;
+	}
+	std::cout << "\tMax Compute Work Group Invocations " << properties.limits.maxComputeWorkGroupInvocations << endl;
+	std::cout << "\tMax Compute Work Group Size " << endl;
+	for (int i = 0; i < 3; ++i)
+	{
+		std::cout << "\t[" << dimensions[i] << "]: " << properties.limits.maxComputeWorkGroupSize[i] << endl;
 	}
 }
 
@@ -1079,10 +1107,12 @@ agl::aglRenderQueue::aglRenderQueue(aglRenderPass* pass)
 
 void agl::aglRenderQueue::Push()
 {
-	for (aglRenderQueueEntry queue_entry : queueEntries)
-	{
-		queue_entry.shader->BindGraphicsPipeline(pass->commandBuffer->GetCommandBuffer(agl::currentFrame));
-		queue_entry.mesh->Draw(pass->commandBuffer->GetCommandBuffer(agl::currentFrame), agl::currentFrame);
+	if (!disabled) {
+		for (aglRenderQueueEntry queue_entry : queueEntries)
+		{
+			queue_entry.shader->BindGraphicsPipeline(pass->commandBuffer->GetCommandBuffer(agl::currentFrame));
+			queue_entry.mesh->Draw(pass->commandBuffer->GetCommandBuffer(agl::currentFrame), agl::currentFrame);
+		}
 	}
 
 	queueEntries.clear();
@@ -1155,7 +1185,7 @@ void agl::aglRenderPass::CreateRenderPass(aglRenderPassSettings settings)
 	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	colorAttachment.finalLayout = settings.colorAttachmentLayout;
 
 	VkAttachmentDescription depthAttachment{};
 	depthAttachment.format = FindDepthFormat();
@@ -1168,23 +1198,12 @@ void agl::aglRenderPass::CreateRenderPass(aglRenderPassSettings settings)
 	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentReference depthAttachmentRef{ 1,VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
-	VkAttachmentReference colorAttachmentRef{ 0, settings.colorAttachmentLayout };
+	VkAttachmentReference colorAttachmentRef{ 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 	VkSubpassDescription subpass{};
 	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &colorAttachmentRef;
 	subpass.pDepthStencilAttachment = &depthAttachmentRef;
-
-
-	VkSubpassDependency dependency{};
-	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	dependency.dstSubpass = 0;
-
-	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-	dependency.srcAccessMask = 0;
-
-	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 	array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
 	VkRenderPassCreateInfo renderPassInfo{};
@@ -1193,8 +1212,8 @@ void agl::aglRenderPass::CreateRenderPass(aglRenderPassSettings settings)
 	renderPassInfo.pAttachments = attachments.data();
 	renderPassInfo.subpassCount = 1;
 	renderPassInfo.pSubpasses = &subpass;
-	renderPassInfo.dependencyCount = 1;
-	renderPassInfo.pDependencies = &dependency;
+	renderPassInfo.dependencyCount = settings.dependencies.size();
+	renderPassInfo.pDependencies = settings.dependencies.data();
 
 	VkResult result = vkCreateRenderPass(GetDevice(), &renderPassInfo, nullptr, &renderPass);
 
@@ -1204,11 +1223,16 @@ void agl::aglRenderPass::CreateRenderPass(aglRenderPassSettings settings)
 	}
 }
 
+void agl::DisableRenderQueue()
+{
+	baseSurface->framebuffer->renderPass->renderQueue->disabled = true;
+}
+
 agl::aglSwapchain::aglSwapchain()
 {
 	fbo = new aglFramebuffer();
 	CreateSwapChain();
-	fbo->CreateFramebuffers();
+	fbo->CreateFramebuffers({VK_IMAGE_LAYOUT_PRESENT_SRC_KHR});
 }
 
 void agl::aglSwapchain::CreateSwapChain()
@@ -1336,15 +1360,15 @@ void agl::aglFramebuffer::Recreate()
 
 	Destroy();
 
-	CreateFramebuffers();
+	CreateFramebuffers({VK_IMAGE_LAYOUT_PRESENT_SRC_KHR});
 }
 
-void agl::aglFramebuffer::CreateFramebuffers()
+void agl::aglFramebuffer::CreateFramebuffers(aglRenderPassSettings settings)
 {
 	CreateDepthResources();
 	CreateImageViews();
 
-	renderPass = new aglRenderPass(this, aglRenderPassSettings{VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+	renderPass = new aglRenderPass(this,settings);
 	framebuffers.resize(imageViews.size());
 
 	for (size_t i = 0; i < imageViews.size(); i++)
@@ -1404,9 +1428,106 @@ void agl::aglShaderFactory::ReloadShader(u32 id)
 	loadedShaders[id]->Recreate();
 }
 
-void agl::aglShaderFactory::InsertShader(aglShader* shader)
+void agl::aglShaderFactory::SetupAllShaders()
 {
-	loadedShaders.push_back(shader);
+	for (auto loaded_shader : loadedShaders)
+	{
+		loaded_shader->Setup();
+	}
+}
+
+void agl::aglShaderFactory::InsertShader(aglShader* shader, u32 desiredId)
+{
+	u32 id = desiredId;
+
+	if (id == -1)
+	{
+		id = loadedShaders.size();
+		loadedShaders.resize(loadedShaders.size() + 1);
+	}
+
+	shader->id = id;
+	loadedShaders[id] = (shader);
+}
+
+agl::aglShader* agl::aglShaderFactory::GetShader(u32 id)
+{
+
+	if (loadedShaders.size() <= id || loadedShaders[id] == nullptr)
+	{
+		agl::aglShaderSettings shaderSettings = {
+			{
+				data["LoadedShaders"]["Settings"]["VertexPath"],
+				data["LoadedShaders"]["Settings"]["FragmentPath"],
+				data["LoadedShaders"]["Settings"]["GeometryPath"],
+				data["LoadedShaders"]["Settings"]["ComputePath"],
+			},
+			data["LoadedShaders"]["Settings"]["CullFlags"],
+			data["LoadedShaders"]["Settings"]["FrontFace"],
+			data["LoadedShaders"]["Settings"]["DepthCompare"],
+			data["LoadedShaders"]["Id"]
+		};
+		aglShader* shader = new aglShader(shaderSettings);
+
+		shader->Load(data["LoadedShaders"]);
+
+		return shader;
+	}
+
+	return loadedShaders[id];
+}
+
+nlohmann::json agl::aglShaderFactory::Serialize()
+{
+
+	nlohmann::json j = json::object();
+
+	for (auto loaded_shader : loadedShaders)
+	{
+
+		if (loaded_shader->type == COMPUTE_FULL)
+		{
+			continue;
+		}
+
+		j["LoadedShaders"][loaded_shader->id] = loaded_shader->Serialize();
+	}
+
+	return j;
+}
+
+void agl::aglShaderFactory::Load(nlohmann::json j)
+{
+	data = j;
+
+	loadedShaders.resize(j["LoadedShaders"].size());
+
+	for (auto s : j["LoadedShaders"])
+	{
+		if (loadedShaders[s["Id"]] == nullptr)
+		{
+			agl::aglShaderSettings shaderSettings = {
+				{
+					s["Settings"]["VertexPath"],
+					s["Settings"]["FragmentPath"],
+					s["Settings"]["GeometryPath"],
+					s["Settings"]["ComputePath"],
+				},
+				s["Settings"]["CullFlags"],
+				s["Settings"]["FrontFace"],
+				s["Settings"]["DepthCompare"],
+				s["Id"]
+			};
+			aglShader* shader = new aglShader(shaderSettings);
+
+			shader->Load(s);
+		}
+	}
+}
+
+void agl::aglShaderFactory::SetData(nlohmann::json j)
+{
+	data = j;
 }
 
 void agl::aglShader::Setup()
@@ -1439,6 +1560,8 @@ void agl::aglShader::Setup()
 void agl::aglShader::Create()
 {
 
+	shaderStages.clear();
+
 	if (settings.paths.vertexPath != "") {
 		string path = settings.paths.vertexPath;
 		vertexCode = ReadString(path);
@@ -1451,6 +1574,7 @@ void agl::aglShader::Create()
 		vertModule = new aglShaderLevel(vertexCode, VERTEX, this);
 
 		shaderStages.push_back(vertModule->stageInfo);
+		type = VISUAL_FULL;
 	}
 
 	if (settings.paths.fragmentPath != "") {
@@ -1465,6 +1589,7 @@ void agl::aglShader::Create()
 		fragModule = new aglShaderLevel(fragmentCode, FRAGMENT, this);
 
 		shaderStages.push_back(fragModule->stageInfo);
+		type = VISUAL_FULL;
 	}
 
 	if (settings.paths.computePath != "") {
@@ -1479,6 +1604,7 @@ void agl::aglShader::Create()
 		compModule = new aglShaderLevel(computeCode, COMPUTE, this);
 
 		shaderStages.push_back(compModule->stageInfo);
+		type = COMPUTE_FULL;
 	}
 
 
@@ -1496,7 +1622,7 @@ agl::aglShader::aglShader(aglShaderSettings settings)
 	descriptorWrites.resize(MAX_FRAMES_IN_FLIGHT);
 	this->settings = settings;
 
-	aglShaderFactory::InsertShader(this);
+	aglShaderFactory::InsertShader(this, settings.desiredID);
 
 	Create();
 }
@@ -1589,6 +1715,7 @@ void agl::aglShader::Destroy()
 	if (compModule)
 	{
 		compModule->Destroy();
+		compModule = nullptr;
 	}
 
 	vkDestroyDescriptorSetLayout(GetDevice(), descriptorSetLayout, nullptr);
@@ -1658,7 +1785,7 @@ void agl::aglShader::BindGraphicsPipeline(VkCommandBuffer commandBuffer)
 	}
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mainPipeline);
 
-	ppBuffer->Update(&postProcessing, sizeof(PostProcessingSettings));
+	ppBuffer->Update(&postProcessing, sizeof(postProcessing));
 
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetPipelineLayout(), 0, 1, &descriptorSets[currentImage], 0, nullptr);
 }
@@ -1929,8 +2056,8 @@ void agl::aglShader::CreateDescriptorSet()
 		for (VkWriteDescriptorSet descriptor_write : descriptorWrites[i])
 		{
 			descriptor_write.dstSet = descriptorSets[i];
-
-
+			descriptor_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				
 			writes[ctr] = descriptor_write;
 			ctr++;
 		}
@@ -1938,6 +2065,70 @@ void agl::aglShader::CreateDescriptorSet()
 		vkUpdateDescriptorSets(GetDevice(), static_cast<u32>(writes.size()), writes.data(), 0, nullptr);
 	}
 
+}
+
+nlohmann::json agl::aglShader::Serialize()
+{
+	nlohmann::json j = json::object();
+
+	j["Id"] = id;
+
+	j["Settings"] = {
+		{"VertexPath", settings.paths.vertexPath},
+		{"FragmentPath", settings.paths.fragmentPath},
+		{"GeometryPath", settings.paths.geometryPath},
+		{"ComputePath", settings.paths.computePath},
+		{"CullFlags", settings.cullFlags},
+		{"DepthCompare", settings.depthCompare},
+		{"FrontFace", settings.frontFace},
+		
+	};
+
+	for (auto port : ports)
+	{
+		nlohmann::json p;
+
+		p["Set"] = port->set;
+		p["Binding"] = port->binding;
+		p["Count"] = port->count;
+		p["Type"] = port->type;
+		p["Name"] = port->name;
+ 
+		if (port->texture)
+		{
+			p["Texture"] = port->texture->id;
+		}
+		j["Ports"][port->binding] = p;
+	}
+
+	return j;
+}
+
+void agl::aglShader::Load(nlohmann::json j)
+{
+	agl::aglShaderSettings shaderSettings = {
+	{
+		j["Settings"]["VertexPath"],
+		j["Settings"]["FragmentPath"],
+		j["Settings"]["GeometryPath"],
+		j["Settings"]["ComputePath"],
+	},
+	j["Settings"]["CullFlags"],
+	j["Settings"]["FrontFace"],
+	j["Settings"]["DepthCompare"],
+		j["Id"]
+	};
+
+	settings = shaderSettings;
+
+	for (auto port : j["Ports"])
+	{
+		if (port.contains("Texture"))
+		{
+			cout << "Processing port: " << port["Name"] << endl;
+			AttachTexture(aglTextureFactory::GetTexture(port["Texture"]), port["Binding"]);
+		}
+	}
 }
 
 void agl::aglShader::AttachTexture(aglTexture* texture, u32 binding)
@@ -1970,6 +2161,8 @@ agl::aglComputeShader::aglComputeShader(aglShaderSettings settings) : aglShader(
 {
 	descriptorWrites.resize(MAX_FRAMES_IN_FLIGHT);
 	bindings.resize(1);
+
+	aglShaderFactory::InsertShader(this, settings.desiredID);
 
 	this->settings = settings;
 
@@ -2243,7 +2436,138 @@ void* agl::aglStorageBuffer::GetData()
 }
 
 
+void agl::aglTextureFactory::InsertTexture(aglTexture* texture, u32 desiredId)
+{
+
+	u32 id = desiredId;
+
+	if (id == -1)
+	{
+		id = LoadedTextures.size();
+		LoadedTextures.resize(LoadedTextures.size() + 1);
+	}
+
+	if (id >= LoadedTextures.size())
+	{
+		LoadedTextures.resize(id + 1);
+	}
+
+	texture->id = id;
+
+	LoadedTextures[id] = texture;
+
+}
+
+nlohmann::json agl::aglTextureFactory::Serialize()
+{
+	nlohmann::json j = json::object();
+
+	for (auto loaded_texture : LoadedTextures)
+	{
+
+		j["LoadedTextures"][loaded_texture->id] = loaded_texture->Serialize();
+	}
+
+	return j;
+}
+
+void agl::aglTextureFactory::Load(nlohmann::json j)
+{
+
+	data = j;
+
+	for (auto t : j["LoadedTextures"])
+	{
+		if (LoadedTextures[t["Id"]] == nullptr) {
+
+			aglTextureCreationInfo info = { 1,1,1 };
+
+			info.desiredId = t["Id"];
+
+			aglTexture* tex = new aglTexture(info);
+			tex->Load(t);
+			LoadedTextures[t["Id"]] = tex;
+		}
+	}
+}
+
+agl::aglTexture* agl::aglTextureFactory::GetTexture(u32 id)
+{
+
+	if (LoadedTextures.size() <= id || LoadedTextures[id] == nullptr)
+	{
+		aglTextureCreationInfo info = { 1,1,1 };
+
+		info.desiredId = id;
+
+		aglTexture* tex = new aglTexture(info);
+		tex->Load(data["LoadedTextures"].at(id));
+		return tex;
+	}
+
+	return LoadedTextures[id];
+}
+
+void agl::aglTextureFactory::SetData(json j)
+{
+	data = j;
+}
+
 agl::aglTexture::aglTexture(string path, VkFormat format)
+{
+	Create(path, format);
+
+	aglTextureFactory::InsertTexture(this, -1);
+
+}
+
+agl::aglTexture::aglTexture(aglShader* shader, aglTextureCreationInfo info)
+{
+	Create(shader, info);
+
+	aglTextureFactory::InsertTexture(this, info.desiredId);
+}
+
+agl::aglTexture::aglTexture(aglTextureCreationInfo info)
+{
+	aglTextureFactory::InsertTexture(this, info.desiredId);
+
+	this->info = info;
+
+	VkDeviceSize imageSize = info.width * info.height * 4;
+
+	width = info.width;
+	height = info.height;
+	channels = info.channels;
+
+  	format = VK_FORMAT_R8G8B8A8_SRGB;
+
+	std::vector<VkBufferImageCopy> bufferCopyRegions;
+	uint32_t offset = 0;
+
+	VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+
+	if (info.computeTexture)
+	{
+		usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+		format = VK_FORMAT_R32G32B32A32_SFLOAT;
+	}
+
+	CreateVulkanImage(width, height, format, VK_IMAGE_TILING_OPTIMAL, usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, false);
+
+	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, true,1);
+	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, true,1);
+
+	textureImageView = CreateImageView(textureImage, format, VK_IMAGE_ASPECT_COLOR_BIT, false);
+	CreateTextureSampler();
+
+	if (info.isCubemap)
+	{
+		type = AGL_TEXTURE_CUBEMAP;
+	}
+}
+
+void agl::aglTexture::Create(std::string path, VkFormat format)
 {
 	this->path = path;
 	int texWidth, texHeight, texChannels;
@@ -2260,6 +2584,7 @@ agl::aglTexture::aglTexture(string path, VkFormat format)
 	width = texWidth;
 	height = texHeight;
 	channels = texChannels;
+	this->format = format;
 
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
@@ -2276,32 +2601,38 @@ agl::aglTexture::aglTexture(string path, VkFormat format)
 	std::vector<VkBufferImageCopy> bufferCopyRegions;
 	uint32_t offset = 0;
 
-	CreateVulkanImage(width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, false);
+	VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
-	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, true);
+	CreateVulkanImage(width, height, format, VK_IMAGE_TILING_OPTIMAL, usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, false);
+
+	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, true, 1);
 	CopyBufferToImage(stagingBuffer, textureImage, static_cast<u32>(texWidth), static_cast<u32>(texHeight), bufferCopyRegions.size(), bufferCopyRegions.data());
-	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, true);
+	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, true, 1);
 
 	vkDestroy(vkDestroyBuffer, stagingBuffer);
 	vkDestroy(vkFreeMemory, stagingBufferMemory);
 
-	textureImageView = CreateImageView(textureImage, format, VK_IMAGE_ASPECT_COLOR_BIT,false);
+	textureImageView = CreateImageView(textureImage, format, VK_IMAGE_ASPECT_COLOR_BIT, false);
 	CreateTextureSampler();
+
+	this->info = info;
 }
 
-agl::aglTexture::aglTexture(aglShader* shader, aglTextureCreationInfo info)
+void agl::aglTexture::Create(aglShader* shader, aglTextureCreationInfo info)
 {
+	sourceShader = shader;
 
 	width = info.width;
 	height = info.height;
 	channels = info.channels;
+	
 
 	VkDeviceSize imageSize = info.width * info.height * info.channels;
+	const uint32_t numMips = static_cast<uint32_t>(floor(log2(static_cast<double>(width)))) + 1;
 
 	VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT;
 
 	VkImageLayout layout;
-	VkFormat format;
 
 	if (info.isCubemap)
 	{
@@ -2312,40 +2643,67 @@ agl::aglTexture::aglTexture(aglShader* shader, aglTextureCreationInfo info)
 	else {
 		usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		format = VK_FORMAT_R8G8B8A8_SRGB;
+		format = VK_FORMAT_R32G32B32A32_SFLOAT;
 	}
 
 
-	
 
-	CreateVulkanImage(width, height, format, VK_IMAGE_TILING_OPTIMAL,  usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, info.isCubemap);
 
-	textureImageView = CreateImageView(textureImage, format, VK_IMAGE_ASPECT_COLOR_BIT, info.isCubemap);
+	CreateVulkanImage(width, height, format, VK_IMAGE_TILING_OPTIMAL, usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, info.isCubemap, numMips);
 
-	CreateTextureSampler();
+	textureImageView = CreateImageView(textureImage, format, VK_IMAGE_ASPECT_COLOR_BIT, info.isCubemap, numMips);
+
+	CreateTextureSampler(static_cast<float>(numMips));
 
 	aglFramebuffer* fbo = new aglFramebuffer();
 	if (info.isCubemap)
 	{
 		fbo = new aglFramebuffer(width, height, aglFramebufferCreationSettings{ format , VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT });
-	} else
+	}
+	else
 	{
 		fbo->imageFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
 	}
-	fbo->extent = VkExtent2D{ (u32) width,(u32)height};
+	fbo->extent = VkExtent2D{ (u32) width,(u32) height };
 	if (!info.isCubemap) {
 		fbo->images.push_back(textureImage);
 	}
-	fbo->CreateFramebuffers();
+
+	vector<VkSubpassDependency> dependencies;
+
+	dependencies.resize(2);
+
+	dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[0].dstSubpass = 0;
+	dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+	dependencies[1].srcSubpass = 0;
+	dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	fbo->CreateFramebuffers({ VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, dependencies });
 	if (info.isCubemap)
 	{
-		TransitionImageLayout(fbo->images[0], fbo->imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,1, true);
+		TransitionImageLayout(fbo->images[0], fbo->imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, true, numMips);
+	}
+	else
+	{
+		TransitionImageLayout(fbo->images[0], fbo->imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, true, numMips);
 	}
 
 	// Pipeline layout
 	struct PushBlock {
 		glm::mat4 mvp;
 		int drawId = 0;
+		int mipId = 0;
+		int mipCount = 0;
 	} pushBlock;
 
 	glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
@@ -2363,7 +2721,7 @@ agl::aglTexture::aglTexture(aglShader* shader, aglTextureCreationInfo info)
 	if (info.isCubemap) {
 
 		shader->pushConstant = new aglPushConstant();
-		shader->pushConstant->flags = VK_SHADER_STAGE_VERTEX_BIT;
+		shader->pushConstant->flags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 		shader->pushConstant->size = sizeof(pushBlock);
 		shader->AttachTexture(info.baseCubemap, shader->GetBindingByName("equirectangularMap"));
 	}
@@ -2375,11 +2733,10 @@ agl::aglTexture::aglTexture(aglShader* shader, aglTextureCreationInfo info)
 
 	int layerCount = 1;
 
-	if (info.isCubemap)
+	if (info.isCubemap) {
 		layerCount = 6;
-
-	TransitionImageLayout(textureImage, fbo->imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,layerCount, true);
-
+		TransitionImageLayout(textureImage, fbo->imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, layerCount, true, numMips);
+	}
 
 	VkCommandBuffer cmd = baseSurface->commandBuffer->BeginSingleTimeCommands();
 
@@ -2388,43 +2745,56 @@ agl::aglTexture::aglTexture(aglShader* shader, aglTextureCreationInfo info)
 
 	if (info.isCubemap) {
 
-		
-
-		for (int i = 0; i < 6; ++i)
+		for (int m = 0; m < numMips; ++m)
 		{
-			pushBlock.mvp = captureProjection * captureViews[i];
-			pushBlock.drawId = i;
+			for (int i = 0; i < 6; ++i)
+			{
+				fbo->extent.width = static_cast<float>(width * std::pow(0.5f, m));
+				fbo->extent.height = static_cast<float>(height * std::pow(0.5f, m));
 
-			shader->pushConstant->data = &pushBlock;
-			shader->pushConstant->size = sizeof(pushBlock);
+				pushBlock.mvp = captureProjection * captureViews[i];
+				pushBlock.drawId = i;
+				pushBlock.mipId = m;
+				pushBlock.mipCount = numMips;
 
-			fbo->Bind(0,cmd);
+				shader->pushConstant->data = &pushBlock;
+				shader->pushConstant->size = sizeof(pushBlock);
 
-			shader->BindGraphicsPipeline(cmd);
+				fbo->Bind(0, cmd);
 
-			((aglPrimitives*) agl_ext::installedExtensions[AGL_EXTENSION_PRIMITIVES_LAYER_NAME])->prims[aglPrimitives::CUBE]->Draw(cmd, 0);
+				shader->BindGraphicsPipeline(cmd);
 
-			fbo->renderPass->End(cmd);
+				((aglPrimitives*) agl_ext::installedExtensions[AGL_EXTENSION_PRIMITIVES_LAYER_NAME])->GetPrims()[aglPrimitives::CUBE]->Draw(cmd, 0);
 
-			TransitionImageLayout(fbo->images[0], fbo->imageFormat, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 1, false);
+				fbo->renderPass->End(cmd);
 
-			CopyImageToImage(textureImage,fbo->images[0],i,1,width,height, false);
+				TransitionImageLayout(fbo->images[0], fbo->imageFormat, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 1, false, numMips);
 
-			TransitionImageLayout(fbo->images[0], fbo->imageFormat, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, false);
+				CopyImageToImage(textureImage, fbo->images[0], i, 1, fbo->extent.width, fbo->extent.height, false, 0, m);
+
+				TransitionImageLayout(fbo->images[0], fbo->imageFormat, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, false, numMips);
+			}
 		}
 
-	} else
+	}
+	else
 	{
-		fbo->Bind(0,cmd);
+		fbo->Bind(0, cmd);
 
 		shader->BindGraphicsPipeline(cmd);
 
-		((aglPrimitives*) agl_ext::installedExtensions[AGL_EXTENSION_PRIMITIVES_LAYER_NAME])->prims[aglPrimitives::QUAD]->Draw(cmd, 0);
+		((aglPrimitives*) agl_ext::installedExtensions[AGL_EXTENSION_PRIMITIVES_LAYER_NAME])->GetPrims()[aglPrimitives::QUAD]->Draw(cmd, 0);
 
 		fbo->renderPass->End(cmd);
 	}
 
-	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, layerCount, false);
+	if (info.isCubemap) {
+		TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, layerCount, false, numMips);
+	}
+	else
+	{
+		TransitionImageLayout(fbo->images[0], format, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, layerCount, false, numMips);
+	}
 
 	baseSurface->commandBuffer->EndSingleTimeCommands(cmd);
 
@@ -2438,41 +2808,27 @@ agl::aglTexture::aglTexture(aglShader* shader, aglTextureCreationInfo info)
 
 	}
 
+	if (info.isCubemap)
+	{
+		type = AGL_PROCEDURAL_CUBEMAP;
+	}
+	else
+	{
+		type = AGL_PROCEDURAL_2D;
+	}
 
-}
-
-agl::aglTexture::aglTexture(aglTextureCreationInfo info)
-{
-
-	VkDeviceSize imageSize = info.width * info.height * 4;
-
-	width = info.width;
-	height = info.height;
-	channels = info.channels;
-
-	VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
-
-	std::vector<VkBufferImageCopy> bufferCopyRegions;
-	uint32_t offset = 0;
-
-	CreateVulkanImage(width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, false);
-
-	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, true);
-	TransitionImageLayout(textureImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, true);
-
-	textureImageView = CreateImageView(textureImage, format, VK_IMAGE_ASPECT_COLOR_BIT, false);
-	CreateTextureSampler();
+	this->info = info;
 }
 
 VkImageView agl::aglTexture::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
-                                             bool isCubemap)
+                                             bool isCubemap, u32 mipCount)
 {
 	VkImageViewCreateInfo viewInfo{};
 	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	viewInfo.image = image;
 	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	viewInfo.format = format;
-	viewInfo.subresourceRange = { aspectFlags, 0,1,0,1 };
+	viewInfo.subresourceRange = VkImageSubresourceRange{ aspectFlags, 0,mipCount,0,1 };
 
 	if (isCubemap)
 	{
@@ -2491,7 +2847,7 @@ VkImageView agl::aglTexture::CreateImageView(VkImage image, VkFormat format, VkI
 
 void agl::aglTexture::CreateVulkanImage(u32 width, u32 height, VkFormat format, VkImageTiling tiling,
 	VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory,
-	bool isCubemap)
+	bool isCubemap, u32 mipCount)
 {
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -2499,7 +2855,7 @@ void agl::aglTexture::CreateVulkanImage(u32 width, u32 height, VkFormat format, 
 	imageInfo.extent.width = width;
 	imageInfo.extent.height = height;
 	imageInfo.extent.depth = 1;
-	imageInfo.mipLevels = 1;
+	imageInfo.mipLevels = mipCount;
 	imageInfo.arrayLayers = 1;
 	imageInfo.format = format;
 	imageInfo.tiling = tiling;
@@ -2533,7 +2889,7 @@ void agl::aglTexture::CreateVulkanImage(u32 width, u32 height, VkFormat format, 
 	vkBindImageMemory(device, image, imageMemory, 0);
 }
 
-void agl::aglTexture::CreateTextureSampler()
+void agl::aglTexture::CreateTextureSampler(float numMips)
 {
 	VkSamplerCreateInfo samplerInfo{};
 
@@ -2560,15 +2916,83 @@ void agl::aglTexture::CreateTextureSampler()
 	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	samplerInfo.mipLodBias = 0.0f;
 	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = 0.0f;
+	samplerInfo.maxLod = numMips;
 
 	if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create texture sampler!");
 	}
 }
 
-agl::aglMesh::aglMesh(aiMesh* mesh)
+nlohmann::json agl::aglTexture::Serialize()
 {
+	nlohmann::json j = json::object();
+
+	bool isCB = (info.baseCubemap != nullptr);
+
+	j["Type"] = json::number_float_t(type);
+	j["Path"] = path;
+	j["Info"] = {
+		{"Width", width},
+		{"Height", height},
+		{"Channels", channels},
+		{"IsCubemap", isCB}
+	};
+	j["Format"] = json::number_float_t(format);
+	j["Id"] = json::number_float_t(id);
+
+
+	if (type == AGL_PROCEDURAL_2D || type == AGL_PROCEDURAL_CUBEMAP)
+	{
+		j["Shader"] = json::number_float_t(sourceShader->id);
+		if (info.baseCubemap) {
+			j["BaseCubemap"] = json::number_float_t(info.baseCubemap->id);
+		}
+	}
+
+	return j;
+}
+
+void agl::aglTexture::Load(nlohmann::json j)
+{
+	type = j["Type"];
+	path = j["Path"];
+	info = {
+		j["Info"]["Width"],
+		j["Info"]["Height"],
+		j["Info"]["Channels"],
+		j.contains("BaseCubemap"),
+	};
+	format = j["Format"];
+	info.desiredId = j["Id"];
+
+
+	if (type == AGL_PROCEDURAL_2D || type == AGL_PROCEDURAL_CUBEMAP)
+	{
+		if (j.contains("BaseCubemap"))
+		{
+			info.baseCubemap = aglTextureFactory::GetTexture(j["BaseCubemap"]);
+		}
+
+
+		Create(aglShaderFactory::GetShader(j["Shader"]), info);
+	} else
+	{
+		Create(j["Path"], j["Format"]);
+	}
+}
+
+agl::aglMesh* agl::aglMesh::GrabMesh(std::string path, int idx)
+{
+
+	aglModel model(path);
+
+	return model.meshes[idx];
+}
+
+agl::aglMesh::aglMesh(aiMesh* mesh, string path, int idx)
+{
+	this->path = path;
+	this->meshIndex = idx;
 
 	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
 	{
@@ -2827,7 +3251,7 @@ agl::aglModel::aglModel(string path)
 	{
 		aiMesh* aimesh = scene->mMeshes[i];
 
-		aglMesh* mesh = new aglMesh(aimesh);
+		aglMesh* mesh = new aglMesh(aimesh, path, i);
 
 		meshes.push_back(mesh);
 	}
@@ -2998,8 +3422,7 @@ void agl::aglUniformBuffer::Update(void* data, size_t dataSize)
 {
 	int bufferSize = settings.bufferSize;
 
-
-	memcpy(mappedUbs[currentFrame], data, dataSize);
+	memcpy(mappedUbs[currentFrame], data,dataSize);
 
 }
 

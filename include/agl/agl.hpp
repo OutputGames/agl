@@ -7,6 +7,7 @@
 
 #include "agl.hpp"
 #include "agl.hpp"
+#include "agl.hpp"
 #include "re.hpp"
 
 
@@ -118,9 +119,9 @@ public:
 	static void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
 	                         VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 	static void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-	static void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, int layerCount, bool endCmd);
+	static void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, int layerCount, bool endCmd, u32 mipCount);
 	static void CopyBufferToImage(VkBuffer buffer, VkImage image, u32 width, u32 height, u32 regionCount, VkBufferImageCopy* regions);
-	static void CopyImageToImage(VkImage base, VkImage sub, int layer, int layerCount, int width, int height, bool endCmd);
+	static void CopyImageToImage(VkImage base, VkImage sub, int layer, int layerCount, int width, int height, bool endCmd, int srcMip, int dstMip);
 	static VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
 	                                    VkFormatFeatureFlags features);
 
@@ -184,6 +185,8 @@ public:
 		DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR = 1000150000 // = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
 	};
 
+	struct aglBuffer;
+
 	struct aglDescriptorPort
 	{
 		u32 binding;
@@ -196,6 +199,9 @@ public:
 		aglDescriptorType type;
 
 		aglTexture* texture = nullptr;
+		
+		aglBuffer* buffer = nullptr;
+		
 	};
 
 	struct aglBufferSettings
@@ -256,7 +262,7 @@ public:
 	struct aglRenderQueue
 	{
 	private:
-		std::vector<aglRenderQueueEntry> queueEntries;
+
 
 		friend aglRenderPass;
 
@@ -264,9 +270,13 @@ public:
 
 	public:
 
+		std::vector<aglRenderQueueEntry> queueEntries;
+
 		aglRenderQueue(aglRenderPass* pass);
 
 		void Push();
+
+		bool disabled = false;
 
 		void AttachQueueEntry(aglRenderQueueEntry entry)
 		{
@@ -277,6 +287,7 @@ public:
 	struct aglRenderPassSettings
 	{
 		VkImageLayout colorAttachmentLayout;
+		std::vector<VkSubpassDependency> dependencies = { {VK_SUBPASS_EXTERNAL, 0, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,0,VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,0 } };
 	};
 
 	struct AURORA_API aglRenderPass
@@ -301,7 +312,10 @@ public:
 		aglFramebuffer* framebuffer;
 		aglCommandBuffer* commandBuffer;
 		aglRenderQueue* renderQueue;
+
 	};
+
+	static void DisableRenderQueue();
 
 	struct AURORA_API aglSwapchain
 	{
@@ -346,7 +360,7 @@ public:
 
 		bool IsResized() { return Resized; }
 
-		void CreateFramebuffers();
+		void CreateFramebuffers(aglRenderPassSettings settings = aglRenderPassSettings{ VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
 
 		void Bind(u32 imageIndex, VkCommandBuffer cmdBuf)
 		{
@@ -378,10 +392,22 @@ public:
 		static void ReloadAllShaders();
 		static void ReloadShader(u32 id);
 
-		static void InsertShader(aglShader* shader);
+		static void SetupAllShaders();
+
+		static void InsertShader(aglShader* shader, u32 desiredId = -1);
+
+		static aglShader* GetShader(u32 id);
+
+		static nlohmann::json Serialize();
+		static void Load(nlohmann::json j);
+
+		static void SetData(nlohmann::json j);
+
 
 	private:
 		IS std::vector<aglShader*> loadedShaders;
+
+		IS nlohmann::json data;
 	};
 
 	enum aglShaderType
@@ -390,6 +416,12 @@ public:
 		FRAGMENT = VK_SHADER_STAGE_FRAGMENT_BIT,
 		GEOMETRY = VK_SHADER_STAGE_GEOMETRY_BIT,
 		COMPUTE = VK_SHADER_STAGE_COMPUTE_BIT
+	};
+
+	enum aglFullShaderType
+	{
+		VISUAL_FULL,
+		COMPUTE_FULL
 	};
 
 
@@ -421,13 +453,18 @@ public:
 		VkCullModeFlags cullFlags = VK_CULL_MODE_BACK_BIT;
 		VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		VkCompareOp depthCompare = VK_COMPARE_OP_LESS;
-		aglRenderPass* renderPass = baseSurface->framebuffer->renderPass;
+
+		u32 desiredID = cast(-1, u32);
+
+		aglRenderPass* renderPass = GetSurfaceDetails()->framebuffer->renderPass;
 	};
 
 	struct AURORA_API aglShader
 	{
 
 		u32 id;
+
+		aglFullShaderType type;
 
 		aglShaderLevel* vertModule = nullptr;
 		aglShaderLevel* fragModule = nullptr;
@@ -484,6 +521,9 @@ public:
 		VkPipeline mainPipeline;
 		VkDescriptorPool descriptorPool;
 		std::vector<aglDescriptorPort*> ports;
+
+		nlohmann::json Serialize();
+		void Load(nlohmann::json j);
 
 
 
@@ -615,7 +655,33 @@ public:
 	{
 		int width, height, channels;
 		bool isCubemap;
-		aglTexture* baseCubemap;
+		aglTexture* baseCubemap = nullptr;
+		bool computeTexture = false;
+		u32 desiredId = cast(-1, u32);
+	};
+
+	enum aglTextureType
+	{
+		AGL_TEXTURE_2D,
+		AGL_TEXTURE_CUBEMAP,
+		AGL_PROCEDURAL_2D,
+		AGL_PROCEDURAL_CUBEMAP
+	};
+
+	struct AURORA_API aglTextureFactory
+	{
+		static void InsertTexture(aglTexture* texture, u32 desiredId = -1);
+
+		static nlohmann::json Serialize();
+		static void Load(nlohmann::json j);
+		static aglTexture* GetTexture(u32 id);
+
+		static void SetData(json j);
+
+	private:
+		IS std::vector<aglTexture*> LoadedTextures;
+
+		IS nlohmann::json data;
 	};
 
 	struct AURORA_API aglTexture
@@ -628,29 +694,41 @@ public:
 		{
 		}
 
+		void Create(std::string path, VkFormat format);
+		void Create(aglShader* shader, aglTextureCreationInfo info);
+
 		static VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
-		                                   bool IsCubemap=false);
+		                                   bool IsCubemap=false, u32 mipCount=1);
 		static void CreateVulkanImage(u32 width, u32 height, VkFormat format, VkImageTiling tiling,
 		                              VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-		                              VkDeviceMemory& imageMemory, bool IsCubemap=false);
-		void CreateTextureSampler();
+		                              VkDeviceMemory& imageMemory, bool IsCubemap=false, u32 mipCount=1);
+		void CreateTextureSampler(float numMips = 0);
 
 		VkImage textureImage;
 		VkDeviceMemory textureImageMemory;
 		VkImageView textureImageView;
 		VkSampler textureSampler;
 
+		aglTextureType type = AGL_TEXTURE_2D;
 
 		u32 id;
 
+		VkFormat format;
 
+		nlohmann::json Serialize();
+		void Load(nlohmann::json j);
 
 		int width, height, channels;
 
 		std::string path;
 
+		aglTextureCreationInfo info;
+
+	private:
 
 		friend aglShader;
+
+		aglShader* sourceShader = nullptr;
 	};
 
 	struct aglMaterial
@@ -672,7 +750,7 @@ public:
 		std::vector<unsigned> indices;
 	};
 
-	struct aglMesh
+	struct AURORA_API  aglMesh
 	{
 		std::vector<aglVertex> vertices;
 		std::vector<unsigned> indices;
@@ -685,7 +763,8 @@ public:
 
 		u32 materialIndex;
 
-		aglMesh(aiMesh* mesh);
+		static aglMesh* GrabMesh(std::string path, int idx);
+		aglMesh(aiMesh* mesh, std::string path, int idx);
 		aglMesh(aglMeshCreationData data);
 
 		void Draw(VkCommandBuffer commandBuffer, u32 imageIndex);
@@ -696,6 +775,9 @@ public:
 		std::vector<aglTexture> textures;
 
 		friend class aglModel;
+
+		std::string path;
+		int meshIndex;
 
 	private:
 		void Setup();
