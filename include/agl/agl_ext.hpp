@@ -10,6 +10,7 @@
 #define AGL_EXTENSION_IMGUI_LAYER_NAME "agl_ext_imgui"
 #define AGL_EXTENSION_PRIMITIVES_LAYER_NAME "agl_ext_prims"
 
+struct ImGuiContext;
 struct TransformationBuffer;
 AURORA_API struct agl_ext
 {
@@ -63,6 +64,9 @@ struct AURORA_API aglImGuiExtension : agl_ext::aglExtension
 	static void DragVec3(std::string text,vec3& v);
 	static void ColorEditVec3(std::string text, vec3& v);
 	static void Dockspace();
+
+	static ImGuiContext* GetContext();
+	static void ProcessSDLEvent(SDL_Event* event);
 
 private:
 	VkDescriptorPool imguiPool;

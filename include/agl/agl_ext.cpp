@@ -210,6 +210,16 @@ void aglImGuiExtension::Dockspace()
 
 }
 
+ImGuiContext* aglImGuiExtension::GetContext()
+{
+	return ImGui::GetCurrentContext();
+}
+
+void aglImGuiExtension::ProcessSDLEvent(SDL_Event* event)
+{
+	ImGui_ImplSDL2_ProcessEvent(event);
+}
+
 void aglPrimitives::Install()
 {
 
@@ -512,8 +522,9 @@ agl::aglMesh* aglPrimitives::GenerateQuad()
 
 agl::aglMesh* aglPrimitives::GenerateCapsule(float height, float radius)
 {
-	par_shapes_mesh* mesh = par_shapes_create_cylinder(32, 8);
+	par_shapes_mesh* mesh = par_shapes_create_cylinder(32, 16);
 	par_shapes_scale(mesh, radius, radius, height);
+	//par_shapes__subdivide(mesh
 
 	{
 		par_shapes_mesh* sphere = par_shapes_create_parametric_sphere(32, 8);
@@ -531,6 +542,7 @@ agl::aglMesh* aglPrimitives::GenerateCapsule(float height, float radius)
 	}
 
 	par_shapes_compute_normals(mesh);
+	par_shapes_translate(mesh, 0, 0, (-height / 2)-(radius));
 
 	u32 num_vertices = mesh->npoints * 3;
 	u32 num_indices = mesh->ntriangles * 3;

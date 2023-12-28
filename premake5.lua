@@ -30,6 +30,7 @@ project "AuroraGraphicsLibrary"
          "vendor/generator/include/",
       }
    
+      files {"vendor/imgui/backends/imgui_impl_vulkan.*"}
    files {"vendor/imgui/backends/imgui_impl_sdl2.*", "vendor/imgui/*"}
    files {"vendor/imgui/misc/debuggers/**", "vendor/imgui/misc/cpp/**"}
     libdirs {"vendor/glfw/lib-vc2022/","vendor/assimp/lib/Release/", "%{_OPTIONS['utilslocation']}".."/vendor/sdl2/lib", "vendor/generator/lib/%{cfg.buildcfg}/" }
@@ -38,7 +39,6 @@ project "AuroraGraphicsLibrary"
     links {"vulkan-1.lib"}
     libdirs {"C:/VulkanSDK/1.3.250.0/Lib"}
     includedirs {"C:/VulkanSDK/1.3.250.0/Include"}
-    files {"vendor/imgui/backends/imgui_impl_vulkan.*"}
 
    filter "configurations:Debug"
       defines { "DEBUG" }
